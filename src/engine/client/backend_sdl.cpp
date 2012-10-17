@@ -1,6 +1,14 @@
 
 #include "SDL.h"
-#include "SDL_opengl.h"
+#if defined(__ANDROID__)
+	#define GL_GLEXT_PROTOTYPES
+	#include <GLES/gl.h>
+	#include <GLES/glext.h>
+	#include <GL/glu.h>
+	#define glOrtho glOrthof
+#else
+	#include "SDL_opengl.h"
+#endif
 
 #include <base/tl/threading.h>
 
@@ -172,6 +180,9 @@ void CCommandProcessorFragment_OpenGL::Cmd_Texture_Create(const CCommandBuffer::
 {
 	int Oglformat = TexFormatToOpenGLFormat(pCommand->m_Format);
 	int StoreOglformat = TexFormatToOpenGLFormat(pCommand->m_StoreFormat);
+#if defined(__ANDROID__)
+	StoreOglformat = Oglformat;
+#endif
 
 	glGenTextures(1, &m_aTextures[pCommand->m_Slot]);
 	glBindTexture(GL_TEXTURE_2D, m_aTextures[pCommand->m_Slot]);
@@ -212,7 +223,12 @@ void CCommandProcessorFragment_OpenGL::Cmd_Render(const CCommandBuffer::SCommand
 	switch(pCommand->m_PrimType)
 	{
 	case CCommandBuffer::PRIMTYPE_QUADS:
+#if defined(__ANDROID__)
+		for( unsigned i = 0, j = pCommand->m_PrimCount; i < j; i++ )
+			glDrawArrays(GL_TRIANGLE_FAN, i*4, 4);
+#else
 		glDrawArrays(GL_QUADS, 0, pCommand->m_PrimCount*4);
+#endif
 		break;
 	case CCommandBuffer::PRIMTYPE_LINES:
 		glDrawArrays(GL_LINES, 0, pCommand->m_PrimCount*2);

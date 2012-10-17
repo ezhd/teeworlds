@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include <base/system.h>
-#include <base/math.h>
+#include <base/mixmath.h>
 #include <base/vmath.h>
 
 #include <engine/config.h>
@@ -1350,9 +1350,15 @@ bool CMenus::OnMouseMove(float x, float y)
 	if(!m_MenuActive)
 		return false;
 
+#if defined(__ANDROID__) // No relative mouse on Android
+	m_MousePos.x = x;
+	m_MousePos.y = y;
+#else
 	UI()->ConvertMouseMove(&x, &y);
 	m_MousePos.x += x;
 	m_MousePos.y += y;
+#endif
+
 	if(m_MousePos.x < 0) m_MousePos.x = 0;
 	if(m_MousePos.y < 0) m_MousePos.y = 0;
 	if(m_MousePos.x > Graphics()->ScreenWidth()) m_MousePos.x = Graphics()->ScreenWidth();

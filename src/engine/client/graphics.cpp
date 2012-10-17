@@ -2,11 +2,19 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 
 #include <base/detect.h>
-#include <base/math.h>
+#include <base/mixmath.h>
 #include <base/tl/threading.h>
 
 #include "SDL.h"
-#include "SDL_opengl.h"
+#if defined(__ANDROID__)
+	#define GL_GLEXT_PROTOTYPES
+	#include <GLES/gl.h>
+	#include <GLES/glext.h>
+	#include <GL/glu.h>
+	#define glOrtho glOrthof
+#else
+	#include "SDL_opengl.h"
+#endif
 
 #include <base/system.h>
 #include <engine/external/pnglite/pnglite.h>
@@ -70,7 +78,12 @@ void CGraphics_OpenGL::Flush()
 	if(m_RenderEnable)
 	{
 		if(m_Drawing == DRAWING_QUADS)
+#if defined(__ANDROID__)
+			for( unsigned i = 0, j = m_NumVertices; i < j; i++ )
+				glDrawArrays(GL_TRIANGLE_FAN, i*4, 4);
+#else
 			glDrawArrays(GL_QUADS, 0, m_NumVertices);
+#endif
 		else if(m_Drawing == DRAWING_LINES)
 			glDrawArrays(GL_LINES, 0, m_NumVertices);
 	}
@@ -342,6 +355,9 @@ int CGraphics_OpenGL::LoadTextureRaw(int Width, int Height, int Format, const vo
 		Oglformat = GL_ALPHA;
 
 	// upload texture
+#if defined(__ANDROID__)
+	StoreOglformat = Oglformat;
+#else
 	if(g_Config.m_GfxTextureCompression)
 	{
 		StoreOglformat = GL_COMPRESSED_RGBA_ARB;
@@ -358,6 +374,8 @@ int CGraphics_OpenGL::LoadTextureRaw(int Width, int Height, int Format, const vo
 		else if(StoreFormat == CImageInfo::FORMAT_ALPHA)
 			StoreOglformat = GL_ALPHA;
 	}
+#endif
+
 
 	glGenTextures(1, &m_aTextures[Tex].m_Tex);
 	glBindTexture(GL_TEXTURE_2D, m_aTextures[Tex].m_Tex);
