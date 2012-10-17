@@ -303,7 +303,9 @@ void CGameClient::DispatchInput()
 	// handle mouse movement
 	float x = 0.0f, y = 0.0f;
 	Input()->MouseRelative(&x, &y);
+#if !defined(__ANDROID__) // No relative mouse on Android
 	if(x != 0.0f || y != 0.0f)
+#endif
 	{
 		for(int h = 0; h < m_Input.m_Num; h++)
 		{

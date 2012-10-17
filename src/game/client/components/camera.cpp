@@ -2,7 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/shared/config.h>
 
-#include <base/math.h>
+#include <base/mixmath.h>
 #include <game/collision.h>
 #include <game/client/gameclient.h>
 #include <game/client/component.h>

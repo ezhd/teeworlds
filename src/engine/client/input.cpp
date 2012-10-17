@@ -52,6 +52,12 @@ void CInput::Init()
 
 void CInput::MouseRelative(float *x, float *y)
 {
+#if defined(__ANDROID__) // No relative mouse on Android
+	int nx = 0, ny = 0;
+	SDL_GetMouseState(&nx, &ny);
+	*x = nx;
+	*y = ny;
+#else
 	int nx = 0, ny = 0;
 	float Sens = g_Config.m_InpMousesens/100.0f;
 
@@ -69,6 +75,7 @@ void CInput::MouseRelative(float *x, float *y)
 
 	*x = nx*Sens;
 	*y = ny*Sens;
+#endif
 }
 
 void CInput::MouseModeAbsolute()

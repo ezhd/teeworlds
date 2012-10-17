@@ -1,6 +1,6 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-#include <base/math.h>
+#include <base/mixmath.h>
 
 #include <engine/shared/config.h>
 
@@ -211,7 +211,11 @@ bool CControls::OnMouseMove(float x, float y)
 		(m_pClient->m_Snap.m_SpecInfo.m_Active && m_pClient->m_pChat->IsActive()))
 		return false;
 
+#if defined(__ANDROID__) // No relative mouse on Android
+	m_MousePos = vec2(x, y); // TODO: ugly
+#else
 	m_MousePos += vec2(x, y); // TODO: ugly
+#endif
 	ClampMousePos();
 
 	return true;

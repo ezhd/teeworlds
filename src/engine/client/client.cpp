@@ -5,7 +5,7 @@
 #include <stdlib.h> // qsort
 #include <stdarg.h>
 
-#include <base/math.h>
+#include <base/mixmath.h>
 #include <base/system.h>
 #include <base/tl/threading.h>
 
@@ -2249,7 +2249,7 @@ static CClient *CreateClient()
 		Upstream latency
 */
 
-#if defined(CONF_PLATFORM_MACOSX)
+#if defined(CONF_PLATFORM_MACOSX) || defined(__ANDROID__)
 extern "C" int SDL_main(int argc, char **argv_) // ignore_convention
 {
 	const char **argv = const_cast<const char **>(argv_);

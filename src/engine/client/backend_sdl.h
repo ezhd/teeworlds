@@ -93,6 +93,43 @@
 
 #elif defined(CONF_FAMILY_UNIX)
 
+#if defined(__ANDROID__)
+
+	#include <EGL/egl.h>
+
+	struct SGLContext
+	{
+		EGLDisplay m_Display;
+		EGLSurface m_SurfaceDraw;
+		EGLSurface m_SurfaceRead;
+		EGLContext m_Context;
+	};
+
+	static SGLContext GL_GetCurrentContext()
+	{
+		SGLContext Context;
+		Context.m_Display = eglGetCurrentDisplay();
+		Context.m_SurfaceDraw = eglGetCurrentSurface(EGL_DRAW);
+		Context.m_SurfaceRead = eglGetCurrentSurface(EGL_READ);
+		Context.m_Context = eglGetCurrentContext();
+		return Context;
+	}
+
+	static void GL_MakeCurrent(const SGLContext &Context)
+	{
+		eglMakeCurrent(Context.m_Display, Context.m_SurfaceDraw, Context.m_SurfaceRead, Context.m_Context);
+	}
+	static void GL_ReleaseContext(const SGLContext &Context)
+	{
+		eglMakeCurrent(Context.m_Display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	}
+	static void GL_SwapBuffers(const SGLContext &Context)
+	{
+		eglSwapBuffers(Context.m_Display, Context.m_SurfaceDraw);
+	}
+
+#else
+
 	#include <GL/glx.h>
 
 	struct SGLContext
@@ -114,6 +151,8 @@
 	static void GL_MakeCurrent(const SGLContext &Context) { glXMakeCurrent(Context.m_pDisplay, Context.m_Drawable, Context.m_Context); }
 	static void GL_ReleaseContext(const SGLContext &Context) { glXMakeCurrent(Context.m_pDisplay, None, 0x0); }
 	static void GL_SwapBuffers(const SGLContext &Context) { glXSwapBuffers(Context.m_pDisplay, Context.m_Drawable); }
+
+#endif
 #else
 	#error missing implementation
 #endif

@@ -5,7 +5,7 @@
 
 #include <math.h>
 
-#include "math.h"	// mix
+#include "mixmath.h"	// mix
 
 // ------------------------------------
 

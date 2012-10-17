@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include <base/system.h>
-#include <base/math.h>
+#include <base/mixmath.h>
 
 #include <engine/shared/config.h>
 #include <engine/graphics.h>

@@ -4,7 +4,7 @@
 #define GAME_GAMECORE_H
 
 #include <base/system.h>
-#include <base/math.h>
+#include <base/mixmath.h>
 
 #include <math.h>
 #include "collision.h"
