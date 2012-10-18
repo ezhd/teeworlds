@@ -79,7 +79,8 @@
 	}
 	static void GL_SwapBuffers(const SGLContext &Context)
 	{
-		eglSwapBuffers(Context.m_Display, Context.m_SurfaceDraw);
+		// eglSwapBuffers(Context.m_Display, Context.m_SurfaceDraw);
+		SDL_GL_SwapBuffers(); // This will also draw on-screen keyboard
 	}
 
 #else

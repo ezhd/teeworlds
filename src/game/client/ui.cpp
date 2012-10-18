@@ -55,9 +55,14 @@ int CUI::MouseInside(const CUIRect *r)
 
 void CUI::ConvertMouseMove(float *x, float *y)
 {
+#if defined(__ANDROID__)
+	*x = *x * 800 / g_Config.m_GfxScreenWidth;
+	*y = *y * 600 / g_Config.m_GfxScreenHeight;
+#else
 	float Fac = (float)(g_Config.m_UiMousesens)/g_Config.m_InpMousesens;
 	*x = *x*Fac;
 	*y = *y*Fac;
+#endif
 }
 
 CUIRect *CUI::Screen()

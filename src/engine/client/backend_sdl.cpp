@@ -6,6 +6,7 @@
 	#include <GLES/glext.h>
 	#include <GL/glu.h>
 	#define glOrtho glOrthof
+	#include <SDL_android.h>
 #else
 	#include "SDL_opengl.h"
 #endif

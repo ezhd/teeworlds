@@ -192,6 +192,10 @@ int CInput::Update()
 
 				// other messages
 				case SDL_QUIT:
+#if defined(__ANDROID__)
+				case SDL_ACTIVEEVENT:
+				case SDL_VIDEORESIZE:
+#endif
 					return 1;
 			}
 
