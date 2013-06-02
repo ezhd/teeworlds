@@ -2,7 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <math.h>
 
-#include <base/mixmath.h>
+#include <base/math.h>
 
 #include <engine/shared/config.h>
 #include <engine/graphics.h>

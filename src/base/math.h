@@ -1,7 +1,7 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-#ifndef BASE_MIXMATH_H
-#define BASE_MIXMATH_H
+#ifndef BASE_MATH_H
+#define BASE_MATH_H
 
 #include <stdlib.h>
 
@@ -67,4 +67,4 @@ template <typename T> inline T min(T a, T b) { return a<b?a:b; }
 template <typename T> inline T max(T a, T b) { return a>b?a:b; }
 template <typename T> inline T absolute(T a) { return a<T(0)?-a:a; }
 
-#endif // BASE_MIXMATH_H
+#endif // BASE_MATH_H

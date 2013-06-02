@@ -3,7 +3,7 @@
 #include <malloc.h>
 #include <algorithm> // sort  TODO: remove this
 
-#include <base/mixmath.h>
+#include <base/math.h>
 #include <base/system.h>
 
 #include <engine/shared/config.h>
