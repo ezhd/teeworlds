@@ -214,9 +214,10 @@ bool CControls::OnMouseMove(float x, float y)
 		return false;
 
 #if defined(__ANDROID__) // No relative mouse on Android
-	unsigned w = g_Config.m_GfxScreenWidth;
-	unsigned h = g_Config.m_GfxScreenHeight;
-	m_MousePos = vec2((x - w/2) / w * 2000.0f, (y - h/2) / h * 2000.0f);
+	//unsigned w = g_Config.m_GfxScreenWidth;
+	//unsigned h = g_Config.m_GfxScreenHeight;
+	//m_MousePos = vec2((x - w/2) / w * 2000.0f, (y - h/2) / h * 2000.0f);
+	m_MousePos = vec2(x, y);
 #else
 	m_MousePos += vec2(x, y); // TODO: ugly
 #endif
