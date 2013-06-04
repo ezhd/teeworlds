@@ -792,7 +792,7 @@ int CGraphics_SDL::TryInit()
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE); // prevent stuck mouse cursor sdl-bug when loosing fullscreen focus in windows
 
 	// use current resolution as default
-#ifndef ANDROID
+#ifndef __ANDROID__
 	if(g_Config.m_GfxScreenWidth == 0 || g_Config.m_GfxScreenHeight == 0)
 #endif
 	{

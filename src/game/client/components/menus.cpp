@@ -276,7 +276,15 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 	}
 
 	if(Inside)
+	{
 		UI()->SetHotItem(pID);
+		if(UI()->ActiveItem() == pID && UI()->MouseButtonClicked(0))
+		{
+			UI()->AndroidShowTextInput(pStr, "");
+			pStr[0] = 0;
+			s_AtIndex = 0;
+		}
+	}
 
 	CUIRect Textbox = *pRect;
 	RenderTools()->DrawUIRect(&Textbox, vec4(1, 1, 1, 0.5f), Corners, 3.0f);
@@ -1020,7 +1028,7 @@ int CMenus::Render()
 			}
 
 			Box.HSplitBottom(60.f, &Box, &Part);
-			Box.HSplitBottom(24.f, &Box, &Part);
+			Box.HSplitBottom(60.f, &Box, &Part);
 
 			Part.VSplitLeft(60.0f, 0, &Label);
 			Label.VSplitLeft(100.0f, 0, &TextBox);
@@ -1251,7 +1259,7 @@ int CMenus::Render()
 			}
 
 			Box.HSplitBottom(60.f, &Box, &Part);
-			Box.HSplitBottom(24.f, &Box, &Part);
+			Box.HSplitBottom(60.f, &Box, &Part);
 
 			Part.VSplitLeft(60.0f, 0, &Label);
 			Label.VSplitLeft(120.0f, 0, &TextBox);
@@ -1304,7 +1312,7 @@ int CMenus::Render()
 				m_Popup = POPUP_NONE;
 
 			Box.HSplitBottom(40.f, &Box, &Part);
-			Box.HSplitBottom(24.f, &Box, &Part);
+			Box.HSplitBottom(60.f, &Box, &Part);
 
 			Part.VSplitLeft(60.0f, 0, &Label);
 			Label.VSplitLeft(100.0f, 0, &TextBox);
@@ -1336,6 +1344,7 @@ int CMenus::Render()
 void CMenus::SetActive(bool Active)
 {
 	m_MenuActive = Active;
+	UI()->AndroidShowScreenKeys(!m_MenuActive);
 	if(!m_MenuActive)
 	{
 		if(m_NeedSendinfo)

@@ -95,6 +95,9 @@ public:
 	// TODO: Refactor: Remove this?
 	void DoLabel(const CUIRect *pRect, const char *pText, float Size, int Align, int MaxWidth = -1);
 	void DoLabelScaled(const CUIRect *pRect, const char *pText, float Size, int Align, int MaxWidth = -1);
+
+	void AndroidShowScreenKeys(bool shown);
+	void AndroidShowTextInput(const char *text, const char *hintText);
 };
 
 

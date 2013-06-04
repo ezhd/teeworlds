@@ -112,6 +112,9 @@ void CBinds::SetDefaults()
 	Bind(KEY_MOUSE_WHEEL_UP, "+prevweapon");
 	Bind(KEY_MOUSE_WHEEL_DOWN, "+nextweapon");
 
+	Bind(KEY_PAGEUP, "+prevweapon");
+	Bind(KEY_PAGEDOWN, "+nextweapon");
+
 	Bind('t', "chat all");
 	Bind('y', "chat team");
 
