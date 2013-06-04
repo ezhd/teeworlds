@@ -26,12 +26,12 @@
 void CMenus::RenderGame(CUIRect MainView)
 {
 	CUIRect Button, ButtonBar;
-	MainView.HSplitTop(45.0f, &ButtonBar, &MainView);
+	MainView.HSplitTop(100.0f, &ButtonBar, &MainView);
 	RenderTools()->DrawUIRect(&ButtonBar, ms_ColorTabbarActive, CUI::CORNER_ALL, 10.0f);
 
 	// button bar
 	ButtonBar.HSplitTop(10.0f, 0, &ButtonBar);
-	ButtonBar.HSplitTop(25.0f, &ButtonBar, 0);
+	ButtonBar.HSplitTop(80.0f, &ButtonBar, 0);
 	ButtonBar.VMargin(10.0f, &ButtonBar);
 
 	ButtonBar.VSplitRight(120.0f, &ButtonBar, &Button);
