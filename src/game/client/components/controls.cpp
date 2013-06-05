@@ -1,5 +1,7 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+#include <SDL.h>
+
 #include <base/math.h>
 
 #include <engine/shared/config.h>
@@ -13,9 +15,21 @@
 
 #include "controls.h"
 
+enum { LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1, RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3, NUM_JOYSTICK_AXES = 4 };
+
 CControls::CControls()
 {
 	mem_zero(&m_LastData, sizeof(m_LastData));
+
+	SDL_Init(SDL_INIT_JOYSTICK);
+	m_Joystick = SDL_JoystickOpen(0);
+	if( m_Joystick && SDL_JoystickNumAxes(m_Joystick) < NUM_JOYSTICK_AXES )
+	{
+		SDL_JoystickClose(m_Joystick);
+		m_Joystick = NULL;
+	}
+	if( m_Joystick )
+		SDL_JoystickEventState(SDL_QUERY);
 }
 
 void CControls::OnReset()
@@ -31,6 +45,14 @@ void CControls::OnReset()
 
 	m_InputDirectionLeft = 0;
 	m_InputDirectionRight = 0;
+
+	m_JoystickFirePressed = false;
+	m_JoystickRunPressed = false;
+	m_JoystickTapTime = 0;
+	m_JoystickDoubleTap = false;
+	m_JoystickSwipeJumpAccum = 0;
+	m_JoystickSwipeJumpY = 0;
+	m_JoystickSwipeJumpTime = 0;
 }
 
 void CControls::OnRelease()
@@ -198,6 +220,104 @@ int CControls::SnapInput(int *pData)
 
 void CControls::OnRender()
 {
+	if( m_Joystick )
+	{
+		// Get input from left joystick
+		int RunX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
+		int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
+		bool RunPressed = (RunX != 0 || RunY != 0);
+		bool HookShot = false;
+
+		if( m_JoystickRunPressed != RunPressed )
+		{
+			if( RunPressed )
+			{
+				if( m_JoystickTapTime + time_freq() / 2 > time_get() ) // Half-second timeout
+				{
+					if( !m_JoystickDoubleTap )
+					{
+						m_InputData.m_Hook = 1;
+						m_MousePos = vec2(RunX / 100, RunY / 100);
+						ClampMousePos();
+						HookShot = true;
+					}
+					m_JoystickDoubleTap = !m_JoystickDoubleTap;
+				}
+				else
+					m_JoystickDoubleTap = false;
+				m_JoystickSwipeJumpY = RunY;
+			}
+			else
+			{
+				m_InputData.m_Hook = 0;
+				m_JoystickSwipeJumpAccum = 0;
+				m_JoystickSwipeJumpY = 0;
+			}
+			m_JoystickTapTime = m_JoystickSwipeJumpTime = time_get();
+		}
+
+		m_JoystickRunPressed = RunPressed;
+
+		if( RunPressed )
+		{
+			m_InputDirectionLeft = (RunX < -8192);
+			m_InputDirectionRight = (RunX > 8192);
+		}
+
+		// Move 300ms in the same direction, to prevent speed bump when tapping
+		if( !RunPressed && m_JoystickTapTime + time_freq() / 3 > time_get() ) // m_pClient->m_Snap.m_pLocalCharacter && m_pClient->m_Snap.m_pLocalCharacter->m_Jumped &&
+		{
+			m_InputDirectionLeft = 0;
+			m_InputDirectionRight = 0;
+		}
+
+		// Swipe-jump
+		enum { SWIPE_JUMP_DECAY = 32767, SWIPE_JUMP_THRESHOLD = 16384 }; // Decay half-height of joystick per 1 second, threshold = 1/4 joystick height
+
+		if( m_JoystickSwipeJumpAccum == -1 )
+			m_InputData.m_Jump = 0; // Cancel previous jump with joystick, but do not prevent from jumping with button
+
+		int64 TimeDiff = time_get() - m_JoystickSwipeJumpTime;
+		m_JoystickSwipeJumpAccum += abs(RunY - m_JoystickSwipeJumpY) * time_freq();
+		m_JoystickSwipeJumpAccum -= TimeDiff * SWIPE_JUMP_DECAY;
+		if( m_JoystickSwipeJumpAccum < 0 )
+			m_JoystickSwipeJumpAccum = 0;
+		m_JoystickSwipeJumpTime += TimeDiff;
+
+		if( m_JoystickSwipeJumpAccum > SWIPE_JUMP_THRESHOLD )
+		{
+			m_InputData.m_Jump = 1;
+			m_JoystickSwipeJumpAccum = -1;
+		}
+
+		// Get input from right joystick
+		if( !HookShot ) // Hook aiming angle comes from left joystick, do not mess it up
+		{
+			int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
+			int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
+			bool AimPressed = (AimX != 0 || AimY != 0);
+
+			if( AimPressed )
+			{
+				m_MousePos = vec2(AimX / 100, AimY / 100);
+				ClampMousePos();
+			}
+
+			if( AimPressed != m_JoystickFirePressed )
+			{
+				if( m_pClient->m_Snap.m_pLocalCharacter && m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == 5 )
+				{
+					if( AimPressed )
+						m_InputData.m_Fire += 2; // Rifle - fire when releasing joystick
+				}
+				else
+					m_InputData.m_Fire ++;
+			}
+
+			m_JoystickFirePressed = AimPressed;
+		}
+	}
+
 	// update target pos
 	if(m_pClient->m_Snap.m_pGameInfoObj && !m_pClient->m_Snap.m_SpecInfo.m_Active)
 		m_TargetPos = m_pClient->m_LocalCharacterPos + m_MousePos;
@@ -214,14 +334,15 @@ bool CControls::OnMouseMove(float x, float y)
 		return false;
 
 #if defined(__ANDROID__) // No relative mouse on Android
+	// We're using joystick on Android, mouse is disabled
 	//unsigned w = g_Config.m_GfxScreenWidth;
 	//unsigned h = g_Config.m_GfxScreenHeight;
 	//m_MousePos = vec2((x - w/2) / w * 2000.0f, (y - h/2) / h * 2000.0f);
-	m_MousePos = vec2(x, y);
+	//m_MousePos = vec2(x, y);
 #else
 	m_MousePos += vec2(x, y); // TODO: ugly
-#endif
 	ClampMousePos();
+#endif
 
 	return true;
 }

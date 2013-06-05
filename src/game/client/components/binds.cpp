@@ -96,12 +96,14 @@ void CBinds::SetDefaults()
 	Bind('d', "+right");
 
 	Bind(KEY_SPACE, "+jump");
-	Bind(KEY_MOUSE_1, "+fire");
-	Bind(KEY_MOUSE_2, "+hook");
+	Bind(KEY_RCTRL, "+fire");
+	Bind(KEY_RETURN, "+hook");
 	Bind(KEY_LSHIFT, "+emote");
 	Bind(KEY_RSHIFT, "+spectate");
-	Bind(KEY_RIGHT, "spectate_next");
-	Bind(KEY_LEFT, "spectate_previous");
+	Bind(KEY_RIGHT, "+right");
+	Bind(KEY_LEFT, "+left");
+	Bind(KEY_UP, "+jump");
+	Bind(KEY_DOWN, "+hook");
 
 	Bind('1', "+weapon1");
 	Bind('2', "+weapon2");
