@@ -50,9 +50,11 @@ void CControls::OnReset()
 	m_JoystickRunPressed = false;
 	m_JoystickTapTime = 0;
 	m_JoystickDoubleTap = false;
-	m_JoystickSwipeJumpAccum = 0;
+	m_JoystickSwipeJumpAccumUp = 0;
+	m_JoystickSwipeJumpAccumDown = 0;
 	m_JoystickSwipeJumpY = 0;
 	m_JoystickSwipeJumpTime = 0;
+	m_JoystickHookShot = false;
 }
 
 void CControls::OnRelease()
@@ -226,20 +228,20 @@ void CControls::OnRender()
 		int RunX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
 		int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
 		bool RunPressed = (RunX != 0 || RunY != 0);
-		bool HookShot = false;
+		int64 CurTime = time_get();
 
 		if( m_JoystickRunPressed != RunPressed )
 		{
 			if( RunPressed )
 			{
-				if( m_JoystickTapTime + time_freq() / 2 > time_get() ) // Half-second timeout
+				if( m_JoystickTapTime + time_freq() / 2 > CurTime ) // Half-second timeout
 				{
 					if( !m_JoystickDoubleTap )
 					{
 						m_InputData.m_Hook = 1;
 						m_MousePos = vec2(RunX / 100, RunY / 100);
 						ClampMousePos();
-						HookShot = true;
+						m_JoystickHookShot = true;
 					}
 					m_JoystickDoubleTap = !m_JoystickDoubleTap;
 				}
@@ -250,10 +252,15 @@ void CControls::OnRender()
 			else
 			{
 				m_InputData.m_Hook = 0;
-				m_JoystickSwipeJumpAccum = 0;
+				m_JoystickSwipeJumpAccumUp = 0;
+				m_JoystickSwipeJumpAccumDown = 0;
 				m_JoystickSwipeJumpY = 0;
+				if( !m_pClient->m_Snap.m_pLocalCharacter ||
+					m_pClient->m_Snap.m_pLocalCharacter->m_HookState == HOOK_IDLE ||
+					m_pClient->m_Snap.m_pLocalCharacter->m_HookState == HOOK_RETRACTED )
+					m_JoystickDoubleTap = false;
 			}
-			m_JoystickTapTime = m_JoystickSwipeJumpTime = time_get();
+			m_JoystickTapTime = m_JoystickSwipeJumpTime = CurTime;
 		}
 
 		m_JoystickRunPressed = RunPressed;
@@ -265,33 +272,56 @@ void CControls::OnRender()
 		}
 
 		// Move 300ms in the same direction, to prevent speed bump when tapping
-		if( !RunPressed && m_JoystickTapTime + time_freq() / 3 > time_get() ) // m_pClient->m_Snap.m_pLocalCharacter && m_pClient->m_Snap.m_pLocalCharacter->m_Jumped &&
+		if( !RunPressed && m_JoystickTapTime + time_freq() / 3 > CurTime )
 		{
 			m_InputDirectionLeft = 0;
 			m_InputDirectionRight = 0;
 		}
 
 		// Swipe-jump
-		enum { SWIPE_JUMP_DECAY = 32767, SWIPE_JUMP_THRESHOLD = 16384 }; // Decay half-height of joystick per 1 second, threshold = 1/4 joystick height
+		enum { SWIPE_JUMP_DECAY = 65536, SWIPE_JUMP_THRESHOLD = 8192 }; // Decay full height of joystick per 1 second, threshold = 1/8 joystick height
 
-		if( m_JoystickSwipeJumpAccum == -1 )
+		if( m_JoystickSwipeJumpAccumUp < 0 || m_JoystickSwipeJumpAccumDown < 0 )
 			m_InputData.m_Jump = 0; // Cancel previous jump with joystick, but do not prevent from jumping with button
 
-		int64 TimeDiff = time_get() - m_JoystickSwipeJumpTime;
-		m_JoystickSwipeJumpAccum += abs(RunY - m_JoystickSwipeJumpY) * time_freq();
-		m_JoystickSwipeJumpAccum -= TimeDiff * SWIPE_JUMP_DECAY;
-		if( m_JoystickSwipeJumpAccum < 0 )
-			m_JoystickSwipeJumpAccum = 0;
+		int64 TimeDiff = CurTime - m_JoystickSwipeJumpTime;
 		m_JoystickSwipeJumpTime += TimeDiff;
 
-		if( m_JoystickSwipeJumpAccum > SWIPE_JUMP_THRESHOLD )
+		if( m_JoystickSwipeJumpY > RunY )
+			m_JoystickSwipeJumpAccumUp += (m_JoystickSwipeJumpY - RunY) * time_freq();
+		if( RunY > m_JoystickSwipeJumpY )
+			m_JoystickSwipeJumpAccumDown += (RunY - m_JoystickSwipeJumpY) * time_freq();
+
+		m_JoystickSwipeJumpY = RunY;
+
+		m_JoystickSwipeJumpAccumUp -= TimeDiff * SWIPE_JUMP_DECAY;
+		m_JoystickSwipeJumpAccumDown -= TimeDiff * SWIPE_JUMP_DECAY;
+		if( m_JoystickSwipeJumpAccumUp < 0 )
+			m_JoystickSwipeJumpAccumUp += min(-m_JoystickSwipeJumpAccumUp, TimeDiff * SWIPE_JUMP_DECAY * 2);
+		if( m_JoystickSwipeJumpAccumDown < 0 )
+			m_JoystickSwipeJumpAccumDown += min(-m_JoystickSwipeJumpAccumDown, TimeDiff * SWIPE_JUMP_DECAY * 2);
+
+		if( m_JoystickSwipeJumpAccumUp > SWIPE_JUMP_THRESHOLD * time_freq() )
 		{
 			m_InputData.m_Jump = 1;
-			m_JoystickSwipeJumpAccum = -1;
+			m_JoystickSwipeJumpAccumUp = -SWIPE_JUMP_DECAY * time_freq() / 2;
+		}
+		if( m_JoystickSwipeJumpAccumDown > SWIPE_JUMP_THRESHOLD * time_freq() )
+		{
+			m_InputData.m_Jump = 1;
+			m_JoystickSwipeJumpAccumDown = -SWIPE_JUMP_DECAY * time_freq() / 2;
+		}
+
+		if( m_JoystickHookShot )
+		{
+			// Wait until server acknowledges hook, before changing aiming angle back
+			if( !m_pClient->m_Snap.m_pLocalPrevCharacter ||
+				m_pClient->m_Snap.m_pLocalPrevCharacter->m_HookState != HOOK_IDLE )
+				m_JoystickHookShot = false;
 		}
 
 		// Get input from right joystick
-		if( !HookShot ) // Hook aiming angle comes from left joystick, do not mess it up
+		if( !m_JoystickHookShot ) // Hook aiming angle comes from left joystick, do not mess it up
 		{
 			int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
 			int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
@@ -299,22 +329,36 @@ void CControls::OnRender()
 
 			if( AimPressed )
 			{
-				m_MousePos = vec2(AimX / 100, AimY / 100);
+				m_MousePos = vec2(AimX / 30, AimY / 30);
 				ClampMousePos();
 			}
 
 			if( AimPressed != m_JoystickFirePressed )
 			{
-				if( m_pClient->m_Snap.m_pLocalCharacter && m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == 5 )
+				if( m_pClient->m_Snap.m_pLocalCharacter &&
+					m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == 4 )
 				{
-					if( AimPressed )
-						m_InputData.m_Fire += 2; // Rifle - fire when releasing joystick
+					// Rifle - fire when releasing joystick
+					if( !AimPressed )
+					{
+						m_InputData.m_Fire ++;
+						if( m_InputData.m_Fire % 2 != AimPressed )
+							m_InputData.m_Fire ++;
+					}
 				}
 				else
-					m_InputData.m_Fire ++;
+				{
+					if( m_InputData.m_Fire % 2 != AimPressed )
+						m_InputData.m_Fire ++;
+				}
 			}
 
 			m_JoystickFirePressed = AimPressed;
+		}
+		else
+		{
+			if( m_InputData.m_Fire % 2 != 0 )
+				m_InputData.m_Fire ++;
 		}
 	}
 

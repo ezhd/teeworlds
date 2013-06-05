@@ -41,6 +41,8 @@ CInput::CInput()
 	m_ReleaseDelta = -1;
 
 	m_NumEvents = 0;
+
+	m_VideoRestartNeeded = 0;
 }
 
 void CInput::Init()
@@ -197,11 +199,12 @@ int CInput::Update()
 
 				// other messages
 				case SDL_QUIT:
-#if defined(__ANDROID__)
-				case SDL_ACTIVEEVENT:
-				case SDL_VIDEORESIZE:
-#endif
 					return 1;
+
+#if defined(__ANDROID__)
+				case SDL_VIDEORESIZE:
+					m_VideoRestartNeeded = 1;
+#endif
 			}
 
 			//
@@ -216,6 +219,16 @@ int CInput::Update()
 		}
 	}
 
+	return 0;
+}
+
+int CInput::VideoRestartNeeded()
+{
+	if( m_VideoRestartNeeded )
+	{
+		m_VideoRestartNeeded = 0;
+		return 1;
+	}
 	return 0;
 }
 

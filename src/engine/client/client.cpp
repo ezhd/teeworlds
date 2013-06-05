@@ -1935,6 +1935,13 @@ void CClient::Run()
 					m_pGraphics->Swap();
 				}
 			}
+			if( Input()->VideoRestartNeeded() )
+			{
+				m_pGraphics->Init();
+				//Kernel()->RequestInterface<IEngineTextRender>()->Init();
+				LoadData();
+				GameClient()->OnInit();
+			}
 		}
 
 		AutoScreenshot_Cleanup();
