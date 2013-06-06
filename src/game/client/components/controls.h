@@ -23,6 +23,7 @@ public:
 	int64 m_JoystickSwipeJumpTime;
 	bool m_JoystickHookShot;
 
+	SDL_Joystick *m_Gamepad;
 
 	CNetObj_PlayerInput m_InputData;
 	CNetObj_PlayerInput m_LastData;
