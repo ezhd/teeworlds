@@ -139,6 +139,15 @@ void CUI::AndroidShowTextInput(const char *text, const char *hintText)
 #endif
 }
 
+bool CUI::AndroidTextInputShown()
+{
+#if defined(__ANDROID__)
+	return SDL_IsScreenKeyboardShown(NULL);
+#else
+	return false;
+#endif
+}
+
 
 CUIRect *CUI::Screen()
 {

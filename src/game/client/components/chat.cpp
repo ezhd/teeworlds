@@ -263,6 +263,7 @@ void CChat::EnableMode(int Team)
 		m_Input.Clear();
 		Input()->ClearEvents();
 		m_CompletionChosen = -1;
+		UI()->AndroidShowTextInput("", Team ? Localize("Team chat") : Localize("Chat"));
 	}
 }
 
@@ -537,6 +538,22 @@ void CChat::OnRender()
 	}
 
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	if( UI()->AndroidTextInputShown() )
+	{
+		if(m_Mode == MODE_NONE)
+			EnableMode(0);
+	}
+	else
+	{
+		if(m_Mode != MODE_NONE)
+		{
+			IInput::CEvent Event;
+			Event.m_Flags = IInput::FLAG_PRESS;
+			Event.m_Key = KEY_RETURN;
+			OnInput(Event);
+		}
+	}
 }
 
 void CChat::Say(int Team, const char *pLine)
