@@ -84,20 +84,20 @@ void CUI::AndroidShowScreenKeys(bool shown)
 			SDL_ANDROID_GetScreenKeyboardButtonPos( i, &Buttons[i] );
 		if( !SDL_ANDROID_GetScreenKeyboardRedefinedByUser() )
 		{
-			// Jump button above right joystick
-			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
+			// Weapnext button above right joystick
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x +
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w -
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w;
-			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h * 1.5f;
-			// Weapnext button above Jump
-			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x =
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x;
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].w;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y =
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y -
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h;
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h * 1.5f;
+			// Jump button above Weapnext
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y -
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h;
 			// Hide Weapprev button
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x;
