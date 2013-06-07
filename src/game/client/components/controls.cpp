@@ -343,7 +343,7 @@ void CControls::OnRender()
 
 			if( AimPressed )
 			{
-				m_MousePos = vec2(AimX / 50, AimY / 50);
+				m_MousePos = vec2(AimX / 30, AimY / 30);
 				ClampMousePos();
 			}
 

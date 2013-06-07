@@ -473,6 +473,7 @@ void CChat::OnRender()
 	}
 
 	y -= 8.0f;
+	x += 140.0f;
 
 	int64 Now = time_get();
 	float LineWidth = m_pClient->m_pScoreboard->Active() ? 90.0f : 200.0f;
