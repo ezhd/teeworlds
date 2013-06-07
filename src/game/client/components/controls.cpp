@@ -252,17 +252,17 @@ void CControls::OnRender()
 			{
 				if( m_JoystickTapTime + time_freq() / 2 > CurTime ) // Half-second timeout
 				{
-					if( !m_JoystickDoubleTap )
+					//if( !m_JoystickDoubleTap ) // Double-tapping doesn't really work out, so disabled for now
 					{
 						m_InputData.m_Hook = 1;
 						m_MousePos = vec2(RunX / 100, RunY / 100);
 						ClampMousePos();
 						m_JoystickHookShot = true;
 					}
-					m_JoystickDoubleTap = !m_JoystickDoubleTap;
+					//m_JoystickDoubleTap = !m_JoystickDoubleTap;
 				}
-				else
-					m_JoystickDoubleTap = false;
+				//else
+				//	m_JoystickDoubleTap = false;
 				m_JoystickSwipeJumpY = RunY;
 			}
 			else
@@ -271,10 +271,10 @@ void CControls::OnRender()
 				m_JoystickSwipeJumpAccumUp = 0;
 				m_JoystickSwipeJumpAccumDown = 0;
 				m_JoystickSwipeJumpY = 0;
-				if( !m_pClient->m_Snap.m_pLocalCharacter ||
-					m_pClient->m_Snap.m_pLocalCharacter->m_HookState == HOOK_IDLE ||
-					m_pClient->m_Snap.m_pLocalCharacter->m_HookState == HOOK_RETRACTED )
-					m_JoystickDoubleTap = false;
+				//if( !m_pClient->m_Snap.m_pLocalCharacter ||
+				//	m_pClient->m_Snap.m_pLocalCharacter->m_HookState == HOOK_IDLE ||
+				//	m_pClient->m_Snap.m_pLocalCharacter->m_HookState == HOOK_RETRACTED )
+				//	m_JoystickDoubleTap = false;
 			}
 			m_JoystickTapTime = m_JoystickSwipeJumpTime = CurTime;
 		}
@@ -319,12 +319,18 @@ void CControls::OnRender()
 
 		if( m_JoystickSwipeJumpAccumUp > SWIPE_JUMP_THRESHOLD * time_freq() )
 		{
-			m_InputData.m_Jump = 1;
+			if( m_InputData.m_Hook )
+				m_InputData.m_Hook = 0; // Jump disables hook, you cannot do some tricks but it's arguably more comfortable
+			else
+				m_InputData.m_Jump = 1;
 			m_JoystickSwipeJumpAccumUp = -SWIPE_JUMP_DECAY * time_freq() / 2;
 		}
 		if( m_JoystickSwipeJumpAccumDown > SWIPE_JUMP_THRESHOLD * time_freq() )
 		{
-			m_InputData.m_Jump = 1;
+			if( m_InputData.m_Hook )
+				m_InputData.m_Hook = 0;
+			else
+				m_InputData.m_Jump = 1;
 			m_JoystickSwipeJumpAccumDown = -SWIPE_JUMP_DECAY * time_freq() / 2;
 		}
 
