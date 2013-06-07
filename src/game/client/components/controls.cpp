@@ -57,6 +57,8 @@ void CControls::OnReset()
 	m_JoystickSwipeJumpY = 0;
 	m_JoystickSwipeJumpTime = 0;
 	m_JoystickHookShot = false;
+	for( int i = 0; i < NUM_WEAPONS; i++ )
+		m_AmmoCount[i] = 0;
 }
 
 void CControls::OnRelease()
@@ -129,6 +131,18 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 		CNetMsg_Sv_WeaponPickup *pMsg = (CNetMsg_Sv_WeaponPickup *)pRawMsg;
 		if(g_Config.m_ClAutoswitchWeapons)
 			m_InputData.m_WantedWeapon = pMsg->m_Weapon+1;
+		// We don't really know ammo count, until we'll switch to that weapon, but any non-zero count will suffice here
+		m_AmmoCount[pMsg->m_Weapon%NUM_WEAPONS] = 10;
+	}
+	if(Msg == NETMSGTYPE_SV_KILLMSG)
+	{
+		CNetMsg_Sv_KillMsg *pMsg = (CNetMsg_Sv_KillMsg *)pRawMsg;
+		if( m_pClient->m_Snap.m_LocalClientID == pMsg->m_Victim )
+		{
+			//dbg_msg("dbg", "CControls::OnMessage %d - clearing weapon ammo", Msg);
+			for( int i = 0; i < NUM_WEAPONS; i++ )
+				m_AmmoCount[i] = 0;
+		}
 	}
 }
 
@@ -388,6 +402,28 @@ void CControls::OnRender()
 			m_MousePos = vec2(AimX / 50, AimY / 50);
 			ClampMousePos();
 			UI()->AndroidShowScreenKeys(false);
+		}
+	}
+
+	if( g_Config.m_ClAutoswitchWeaponsOutOfAmmo && m_pClient->m_Snap.m_pLocalCharacter )
+	{
+		// Keep track of ammo count, we know weapon ammo only when we switch to that weapon, this is tracked on server and protocol does not track that
+		m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
+		// Autoswitch weapon if we're out of ammo
+		if( m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
+			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
+			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_NINJA )
+		{
+			int w;
+			for( w = WEAPON_RIFLE; w > WEAPON_GUN; w-- )
+			{
+				if( w == m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+					continue;
+				if( m_AmmoCount[w] > 0 )
+					break;
+			}
+			if( w != m_pClient->m_Snap.m_pLocalCharacter->m_Weapon )
+				m_InputData.m_WantedWeapon = w+1;
 		}
 	}
 

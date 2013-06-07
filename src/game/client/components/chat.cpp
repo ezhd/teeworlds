@@ -539,20 +539,33 @@ void CChat::OnRender()
 
 	TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 
+	static int deferEvent = 0;
 	if( UI()->AndroidTextInputShown() )
 	{
 		if(m_Mode == MODE_NONE)
-			EnableMode(0);
+		{
+			deferEvent++;
+			if( deferEvent > 2 )
+				EnableMode(0);
+		}
+		else
+			deferEvent = 0;
 	}
 	else
 	{
 		if(m_Mode != MODE_NONE)
 		{
-			IInput::CEvent Event;
-			Event.m_Flags = IInput::FLAG_PRESS;
-			Event.m_Key = KEY_RETURN;
-			OnInput(Event);
+			deferEvent++;
+			if( deferEvent > 2 )
+			{
+				IInput::CEvent Event;
+				Event.m_Flags = IInput::FLAG_PRESS;
+				Event.m_Key = KEY_RETURN;
+				OnInput(Event);
+			}
 		}
+		else
+			deferEvent = 0;
 	}
 }
 

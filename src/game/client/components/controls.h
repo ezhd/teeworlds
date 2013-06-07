@@ -25,6 +25,8 @@ public:
 
 	SDL_Joystick *m_Gamepad;
 
+	int m_AmmoCount[NUM_WEAPONS];
+
 	CNetObj_PlayerInput m_InputData;
 	CNetObj_PlayerInput m_LastData;
 	int m_InputDirectionLeft;

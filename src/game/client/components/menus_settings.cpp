@@ -53,7 +53,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 {
 	char aBuf[128];
 	CUIRect Label, Button, Left, Right, Game, Client;
-	MainView.HSplitTop(150.0f, &Game, &Client);
+	MainView.HSplitTop(180.0f, &Game, &Client);
 
 	// game
 	{
@@ -89,6 +89,12 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		Left.HSplitTop(20.0f, &Button, &Left);
 		if(DoButton_CheckBox(&g_Config.m_ClAutoswitchWeapons, Localize("Switch weapon on pickup"), g_Config.m_ClAutoswitchWeapons, &Button))
 			g_Config.m_ClAutoswitchWeapons ^= 1;
+
+		// weapon out of ammo autoswitch
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&g_Config.m_ClAutoswitchWeaponsOutOfAmmo, Localize("Switch weapon when out of ammo"), g_Config.m_ClAutoswitchWeaponsOutOfAmmo, &Button))
+			g_Config.m_ClAutoswitchWeaponsOutOfAmmo ^= 1;
 
 		// show hud
 		Left.HSplitTop(5.0f, 0, &Left);
