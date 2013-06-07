@@ -69,6 +69,8 @@ void CControls::OnRelease()
 void CControls::OnPlayerDeath()
 {
 	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
+	for( int i = 0; i < NUM_WEAPONS; i++ )
+		m_AmmoCount[i] = 0;
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -133,16 +135,6 @@ void CControls::OnMessage(int Msg, void *pRawMsg)
 			m_InputData.m_WantedWeapon = pMsg->m_Weapon+1;
 		// We don't really know ammo count, until we'll switch to that weapon, but any non-zero count will suffice here
 		m_AmmoCount[pMsg->m_Weapon%NUM_WEAPONS] = 10;
-	}
-	if(Msg == NETMSGTYPE_SV_KILLMSG)
-	{
-		CNetMsg_Sv_KillMsg *pMsg = (CNetMsg_Sv_KillMsg *)pRawMsg;
-		if( m_pClient->m_Snap.m_LocalClientID == pMsg->m_Victim )
-		{
-			//dbg_msg("dbg", "CControls::OnMessage %d - clearing weapon ammo", Msg);
-			for( int i = 0; i < NUM_WEAPONS; i++ )
-				m_AmmoCount[i] = 0;
-		}
 	}
 }
 
@@ -416,7 +408,8 @@ void CControls::OnRender()
 		// Keep track of ammo count, we know weapon ammo only when we switch to that weapon, this is tracked on server and protocol does not track that
 		m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
 		// Autoswitch weapon if we're out of ammo
-		if( m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
+		if( m_InputData.m_Fire % 2 != 0 &&
+			m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
 			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
 			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_NINJA )
 		{
