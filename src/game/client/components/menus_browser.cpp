@@ -233,7 +233,7 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
 
 		int Selected = str_comp(pItem->m_aAddress, g_Config.m_UiServerAddress) == 0; //selected_index==ItemIndex;
 
-		View.HSplitTop(ms_ListheaderHeight + ms_ListitemAdditionalHeight, &Row, &View);
+		View.HSplitTop(ms_ListheaderHeight, &Row, &View);
 		SelectHitBox = Row;
 
 		if(Selected)
@@ -825,7 +825,7 @@ void CMenus::RenderServerbrowserFriends(CUIRect View)
 	static float s_ScrollValue = 0;
 	if(m_FriendlistSelectedIndex >= m_lFriends.size())
 		m_FriendlistSelectedIndex = m_lFriends.size()-1;
-	UiDoListboxStart(&m_lFriends, &List, 30.0f, "", "", m_lFriends.size(), 1, m_FriendlistSelectedIndex, s_ScrollValue);
+	UiDoListboxStart(&m_lFriends, &List, 50.0f, "", "", m_lFriends.size(), 1, m_FriendlistSelectedIndex, s_ScrollValue);
 
 	m_lFriends.sort_range();
 	for(int i = 0; i < m_lFriends.size(); ++i)

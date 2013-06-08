@@ -39,8 +39,8 @@ vec4 CMenus::ms_ColorTabbarActive = vec4(0,0,0,0.5f);
 vec4 CMenus::ms_ColorTabbarInactiveIngame;
 vec4 CMenus::ms_ColorTabbarActiveIngame;
 
-float CMenus::ms_ButtonHeight = 25.0f;
-float CMenus::ms_ListheaderHeight = 17.0f;
+float CMenus::ms_ButtonHeight = 50.0f;
+float CMenus::ms_ListheaderHeight = 50.0f;
 float CMenus::ms_ListitemAdditionalHeight = 33.0f;
 float CMenus::ms_FontmodHeight = 0.8f;
 
@@ -157,7 +157,8 @@ int CMenus::DoButton_GridHeader(const void *pID, const char *pText, int Checked,
 		RenderTools()->DrawUIRect(pRect, vec4(1,1,1,0.5f), CUI::CORNER_T, 5.0f);
 	CUIRect t;
 	pRect->VSplitLeft(5.0f, 0, &t);
-	UI()->DoLabel(&t, pText, pRect->h*ms_FontmodHeight, -1);
+	float TextH = min(20.0f, pRect->h);
+	UI()->DoLabel(&t, pText, TextH*ms_FontmodHeight, -1);
 	return UI()->DoButtonLogic(pID, pText, Checked, pRect);
 }
 
@@ -280,9 +281,8 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 		UI()->SetHotItem(pID);
 		if(UI()->ActiveItem() == pID && UI()->MouseButtonClicked(0))
 		{
-			UI()->AndroidShowTextInput(pStr, "");
-			pStr[0] = 0;
 			s_AtIndex = 0;
+			UI()->AndroidBlockAndGetTextInput(pStr, StrSize, "");
 		}
 	}
 

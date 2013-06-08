@@ -84,11 +84,13 @@ void CUI::AndroidShowScreenKeys(bool shown)
 			SDL_ANDROID_GetScreenKeyboardButtonPos( i, &Buttons[i] );
 		if( !SDL_ANDROID_GetScreenKeyboardRedefinedByUser() )
 		{
+			int ScreenW = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x +
+							Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w;
+			int ScreenH = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y +
+							Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h;
 			// Weapnext button above right joystick
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x =
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x +
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w -
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].w;
+				ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].w;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h * 1.5f;
@@ -119,6 +121,17 @@ void CUI::AndroidShowScreenKeys(bool shown)
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].y =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y -
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h;
+			// Bigger joysticks
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].w *= 1.25;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].h *= 1.25;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y =
+				ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].h;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w *= 1.25;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h *= 1.25;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x =
+				ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y =
+				ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h;
 		}
 	}
 
@@ -136,6 +149,14 @@ void CUI::AndroidShowTextInput(const char *text, const char *hintText)
 #if defined(__ANDROID__)
 	SDL_ANDROID_SetScreenKeyboardHintMesage(hintText);
 	SDL_ANDROID_ToggleScreenKeyboardTextInput(text);
+#endif
+}
+
+void CUI::AndroidBlockAndGetTextInput(char *text, int textLength, const char *hintText)
+{
+#if defined(__ANDROID__)
+	SDL_ANDROID_SetScreenKeyboardHintMesage(hintText);
+	SDL_ANDROID_GetScreenKeyboardTextInput(text, textLength);
 #endif
 }
 

@@ -98,6 +98,7 @@ public:
 
 	void AndroidShowScreenKeys(bool shown);
 	void AndroidShowTextInput(const char *text, const char *hintText);
+	void AndroidBlockAndGetTextInput(char *text, int textLength, const char *hintText);
 	bool AndroidTextInputShown();
 };
 

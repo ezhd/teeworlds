@@ -473,13 +473,13 @@ void CChat::OnRender()
 	}
 
 	y -= 8.0f;
-	x += 140.0f;
+	x += 120.0f;
 
 	int64 Now = time_get();
-	float LineWidth = m_pClient->m_pScoreboard->Active() ? 90.0f : 200.0f;
+	float LineWidth = 240.0f;
 	float HeightLimit = m_pClient->m_pScoreboard->Active() ? 230.0f : m_Show ? 50.0f : 200.0f;
 	float Begin = x;
-	float FontSize = 6.0f;
+	float FontSize = 10.0f;
 	CTextCursor Cursor;
 	int OffsetType = m_pClient->m_pScoreboard->Active() ? 1 : 0;
 	for(int i = 0; i < MAX_LINES; i++)
