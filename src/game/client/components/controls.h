@@ -24,6 +24,7 @@ public:
 	bool m_JoystickHookShot;
 
 	SDL_Joystick *m_Gamepad;
+	bool m_UsingGamepad;
 
 	int m_AmmoCount[NUM_WEAPONS];
 

@@ -32,6 +32,8 @@ CControls::CControls()
 	m_Gamepad = SDL_JoystickOpen(2);
 
 	SDL_JoystickEventState(SDL_QUERY);
+
+	m_UsingGamepad = false;
 }
 
 void CControls::OnReset()
@@ -381,15 +383,11 @@ void CControls::OnRender()
 		// Get input from left joystick
 		int RunX = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_X);
 		int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
-		if( abs(RunX) > 8192 )
+		if( m_UsingGamepad )
 		{
 			m_InputDirectionLeft = (RunX < -8192);
 			m_InputDirectionRight = (RunX > 8192);
-		}
-		if( abs(RunY) > 8192 )
-		{
-			m_InputData.m_Jump = (RunY < -16384);
-			m_InputData.m_Hook = (RunY > 16384);
+			m_InputData.m_Jump = abs(RunY) > 16384;
 		}
 
 		// Get input from right joystick
@@ -397,9 +395,14 @@ void CControls::OnRender()
 		int AimY = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_Y);
 		if( abs(AimX) > 8192 || abs(AimY) > 8192 )
 		{
-			m_MousePos = vec2(AimX / 50, AimY / 50);
+			m_MousePos = vec2(AimX / 30, AimY / 30);
 			ClampMousePos();
+		}
+
+		if( abs(AimX) > 8192 || abs(AimY) > 8192 || abs(RunX) > 8192 || abs(RunY) > 8192 )
+		{
 			UI()->AndroidShowScreenKeys(false);
+			m_UsingGamepad = true;
 		}
 	}
 
