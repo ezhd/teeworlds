@@ -1109,7 +1109,7 @@ int CMenus::Render()
 		{
 			Box = Screen;
 			Box.VMargin(150.0f, &Box);
-			Box.HMargin(150.0f, &Box);
+			Box.HMargin(20.0f, &Box);
 			Box.HSplitTop(20.f, &Part, &Box);
 			Box.HSplitBottom(20.f, &Box, &Part);
 			Box.HSplitBottom(60.f, &Box, &Part);

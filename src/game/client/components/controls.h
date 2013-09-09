@@ -12,6 +12,8 @@ class CControls : public CComponent
 public:
 	vec2 m_MousePos;
 	vec2 m_TargetPos;
+	float m_OldMouseX;
+	float m_OldMouseY;
 	SDL_Joystick *m_Joystick;
 	bool m_JoystickFirePressed;
 	bool m_JoystickRunPressed;

@@ -97,7 +97,9 @@ void CBinds::SetDefaults()
 
 	Bind(KEY_SPACE, "+jump");
 	Bind(KEY_RCTRL, "+fire");
+	Bind(KEY_MOUSE_1, "+fire");
 	Bind(KEY_RETURN, "+hook");
+	Bind(KEY_MOUSE_2, "+hook");
 	Bind(KEY_LSHIFT, "+emote");
 	Bind(KEY_RSHIFT, "+spectate");
 	Bind(KEY_RIGHT, "+right");

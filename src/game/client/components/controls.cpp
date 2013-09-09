@@ -61,6 +61,7 @@ void CControls::OnReset()
 	m_JoystickHookShot = false;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
+	m_OldMouseX = m_OldMouseY = 0.0f;
 }
 
 void CControls::OnRelease()
@@ -446,10 +447,15 @@ bool CControls::OnMouseMove(float x, float y)
 
 #if defined(__ANDROID__) // No relative mouse on Android
 	// We're using joystick on Android, mouse is disabled
-	//unsigned w = g_Config.m_GfxScreenWidth;
-	//unsigned h = g_Config.m_GfxScreenHeight;
-	//m_MousePos = vec2((x - w/2) / w * 2000.0f, (y - h/2) / h * 2000.0f);
 	//m_MousePos = vec2(x, y);
+
+	if( m_OldMouseX != x || m_OldMouseY != y )
+	{
+		m_OldMouseX = x;
+		m_OldMouseY = y;
+		m_MousePos = vec2((x - g_Config.m_GfxScreenWidth/2), (y - g_Config.m_GfxScreenHeight/2));
+		ClampMousePos();
+	}
 #else
 	m_MousePos += vec2(x, y); // TODO: ugly
 	ClampMousePos();
