@@ -388,7 +388,7 @@ void CControls::OnRender()
 		{
 			m_InputDirectionLeft = (RunX < -8192);
 			m_InputDirectionRight = (RunX > 8192);
-			m_InputData.m_Jump = abs(RunY) > 16384;
+			//m_InputData.m_Jump = abs(RunY) > 16384;
 		}
 
 		// Get input from right joystick
