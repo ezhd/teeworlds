@@ -34,6 +34,8 @@ CControls::CControls()
 	SDL_JoystickEventState(SDL_QUERY);
 
 	m_UsingGamepad = false;
+	if( getenv("OUYA") )
+		m_UsingGamepad = true;
 }
 
 void CControls::OnReset()
@@ -400,7 +402,7 @@ void CControls::OnRender()
 			ClampMousePos();
 		}
 
-		if( abs(AimX) > 8192 || abs(AimY) > 8192 || abs(RunX) > 8192 || abs(RunY) > 8192 )
+		if( !m_UsingGamepad && (abs(AimX) > 8192 || abs(AimY) > 8192 || abs(RunX) > 8192 || abs(RunY) > 8192) )
 		{
 			UI()->AndroidShowScreenKeys(false);
 			m_UsingGamepad = true;

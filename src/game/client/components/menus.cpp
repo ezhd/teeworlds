@@ -30,6 +30,7 @@
 #include "countryflags.h"
 #include "menus.h"
 #include "skins.h"
+#include "controls.h"
 
 vec4 CMenus::ms_GuiColor;
 vec4 CMenus::ms_ColorTabbarInactiveOutgame;
@@ -1344,7 +1345,7 @@ int CMenus::Render()
 void CMenus::SetActive(bool Active)
 {
 	m_MenuActive = Active;
-	UI()->AndroidShowScreenKeys(!m_MenuActive);
+	UI()->AndroidShowScreenKeys(!m_MenuActive && !m_pClient->m_pControls->m_UsingGamepad);
 	if(!m_MenuActive)
 	{
 		if(m_NeedSendinfo)
