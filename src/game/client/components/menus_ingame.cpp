@@ -438,7 +438,7 @@ void CMenus::RenderServerControl(CUIRect MainView)
 	MainView.HSplitTop(50.0f, &TabBar, &MainView);
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_B, 10.0f);
 	MainView.Margin(10.0f, &MainView);
-	MainView.HSplitBottom(90.0f, &MainView, &Extended);
+	MainView.HSplitBottom(10.0f, &MainView, &Extended);
 
 	// tab bar
 	{
