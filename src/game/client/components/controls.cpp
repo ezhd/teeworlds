@@ -55,12 +55,10 @@ void CControls::OnReset()
 	m_JoystickFirePressed = false;
 	m_JoystickRunPressed = false;
 	m_JoystickTapTime = 0;
-	m_JoystickDoubleTap = false;
 	m_JoystickSwipeJumpAccumUp = 0;
 	m_JoystickSwipeJumpAccumDown = 0;
 	m_JoystickSwipeJumpY = 0;
 	m_JoystickSwipeJumpTime = 0;
-	m_JoystickHookShot = false;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -247,19 +245,8 @@ void CControls::OnRender()
 		{
 			if( RunPressed )
 			{
-				if( m_JoystickTapTime + time_freq() / 2 > CurTime ) // Half-second timeout
-				{
-					//if( !m_JoystickDoubleTap ) // Double-tapping doesn't really work out, so disabled for now
-					{
-						m_InputData.m_Hook = 1;
-						m_MousePos = vec2(RunX / 100, RunY / 100);
-						ClampMousePos();
-						m_JoystickHookShot = true;
-					}
-					//m_JoystickDoubleTap = !m_JoystickDoubleTap;
-				}
-				//else
-				//	m_JoystickDoubleTap = false;
+				if( m_JoystickTapTime + time_freq() > CurTime ) // Tap joystick with one second timeout to launch hook
+					m_InputData.m_Hook = 1;
 				m_JoystickSwipeJumpY = RunY;
 			}
 			else
@@ -268,10 +255,6 @@ void CControls::OnRender()
 				m_JoystickSwipeJumpAccumUp = 0;
 				m_JoystickSwipeJumpAccumDown = 0;
 				m_JoystickSwipeJumpY = 0;
-				//if( !m_pClient->m_Snap.m_pLocalCharacter ||
-				//	m_pClient->m_Snap.m_pLocalCharacter->m_HookState == HOOK_IDLE ||
-				//	m_pClient->m_Snap.m_pLocalCharacter->m_HookState == HOOK_RETRACTED )
-				//	m_JoystickDoubleTap = false;
 			}
 			m_JoystickTapTime = m_JoystickSwipeJumpTime = CurTime;
 		}
@@ -316,69 +299,43 @@ void CControls::OnRender()
 
 		if( m_JoystickSwipeJumpAccumUp > SWIPE_JUMP_THRESHOLD * time_freq() )
 		{
-			if( m_InputData.m_Hook )
-				m_InputData.m_Hook = 0; // Jump disables hook, you cannot do some tricks but it's arguably more comfortable
-			else
-				m_InputData.m_Jump = 1;
+			m_InputData.m_Jump = 1;
 			m_JoystickSwipeJumpAccumUp = -SWIPE_JUMP_DECAY * time_freq() / 2;
 		}
 		if( m_JoystickSwipeJumpAccumDown > SWIPE_JUMP_THRESHOLD * time_freq() )
 		{
-			if( m_InputData.m_Hook )
-				m_InputData.m_Hook = 0;
-			else
-				m_InputData.m_Jump = 1;
+			m_InputData.m_Jump = 1;
 			m_JoystickSwipeJumpAccumDown = -SWIPE_JUMP_DECAY * time_freq() / 2;
 		}
 
-		if( m_JoystickHookShot )
+		// Get input from right joystick
+		int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
+		int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
+		bool AimPressed = (AimX != 0 || AimY != 0);
+
+		if( AimPressed )
 		{
-			// Wait until server acknowledges hook, before changing aiming angle back
-			if( !m_pClient->m_Snap.m_pLocalPrevCharacter ||
-				m_pClient->m_Snap.m_pLocalPrevCharacter->m_HookState != HOOK_IDLE )
-				m_JoystickHookShot = false;
+			m_MousePos = vec2(AimX / 30, AimY / 30);
+			ClampMousePos();
 		}
 
-		// Get input from right joystick
-		if( !m_JoystickHookShot ) // Hook aiming angle comes from left joystick, do not mess it up
+		if( AimPressed != m_JoystickFirePressed )
 		{
-			int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
-			int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
-			bool AimPressed = (AimX != 0 || AimY != 0);
-
-			if( AimPressed )
+			// Fire when releasing joystick
+			if( !AimPressed )
 			{
-				m_MousePos = vec2(AimX / 30, AimY / 30);
-				ClampMousePos();
-			}
-
-			if( AimPressed != m_JoystickFirePressed )
-			{
-				if( m_pClient->m_Snap.m_pLocalCharacter &&
-					m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == 4 )
-				{
-					// Rifle - fire when releasing joystick
-					if( !AimPressed )
-					{
-						m_InputData.m_Fire ++;
-						if( m_InputData.m_Fire % 2 != AimPressed )
-							m_InputData.m_Fire ++;
-					}
-				}
+				if( m_InputData.m_Hook )
+					m_InputData.m_Hook = 0;
 				else
 				{
+					m_InputData.m_Fire ++;
 					if( m_InputData.m_Fire % 2 != AimPressed )
 						m_InputData.m_Fire ++;
 				}
 			}
+		}
 
-			m_JoystickFirePressed = AimPressed;
-		}
-		else
-		{
-			if( m_InputData.m_Fire % 2 != 0 )
-				m_InputData.m_Fire ++;
-		}
+		m_JoystickFirePressed = AimPressed;
 	}
 
 	if( m_Gamepad )
@@ -449,7 +406,6 @@ bool CControls::OnMouseMove(float x, float y)
 
 #if defined(__ANDROID__) // No relative mouse on Android
 	// We're using joystick on Android, mouse is disabled
-	//m_MousePos = vec2(x, y);
 
 	if( m_OldMouseX != x || m_OldMouseY != y )
 	{
