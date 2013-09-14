@@ -93,7 +93,7 @@ void CUI::AndroidShowScreenKeys(bool shown)
 				ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].w;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h * 1.5f;
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h * 2.0f;
 			// Jump button above Weapnext
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x;
@@ -112,7 +112,7 @@ void CUI::AndroidShowScreenKeys(bool shown)
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].x = 0;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y -
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].h * 1.5f;
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].h * 2.0f;
 			// Bigger text input button above scores
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].w =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].w;
