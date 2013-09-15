@@ -234,6 +234,8 @@ int CControls::SnapInput(int *pData)
 
 void CControls::OnRender()
 {
+	enum { JOYSTICK_TAP_DISTANCE = 65536 / 8, JOYSTICK_RUN_DISTANCE = 65536 / 8, GAMEPAD_DEAD_ZONE = 65536 / 8 };
+
 	if( m_Joystick )
 	{
 		// Get input from left joystick
@@ -241,7 +243,6 @@ void CControls::OnRender()
 		int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
 		bool RunPressed = (RunX != 0 || RunY != 0);
 		int64 CurTime = time_get();
-		enum { JOYSTICK_TAP_DISTANCE = 65536 / 8 };
 
 		if( m_JoystickRunPressed != RunPressed )
 		{
@@ -264,7 +265,6 @@ void CControls::OnRender()
 				m_InputData.m_Jump = 0;
 				m_InputData.m_Hook = 0;
 				m_JoystickTapTime = CurTime;
-				m_JoystickTapY = RunY;
 			}
 		}
 
@@ -272,8 +272,9 @@ void CControls::OnRender()
 
 		if( RunPressed )
 		{
-			m_InputDirectionLeft = (RunX < -8192);
-			m_InputDirectionRight = (RunX > 8192);
+			m_InputDirectionLeft = (RunX < -JOYSTICK_RUN_DISTANCE);
+			m_InputDirectionRight = (RunX > JOYSTICK_RUN_DISTANCE);
+			m_JoystickTapY = RunY;
 		}
 
 		// Move 300ms in the same direction, to prevent speed bump when tapping
@@ -315,21 +316,20 @@ void CControls::OnRender()
 		int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
 		if( m_UsingGamepad )
 		{
-			m_InputDirectionLeft = (RunX < -8192);
-			m_InputDirectionRight = (RunX > 8192);
-			//m_InputData.m_Jump = abs(RunY) > 16384;
+			m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
+			m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
 		}
 
 		// Get input from right joystick
 		int AimX = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_X);
 		int AimY = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_Y);
-		if( abs(AimX) > 8192 || abs(AimY) > 8192 )
+		if( abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE )
 		{
 			m_MousePos = vec2(AimX / 30, AimY / 30);
 			ClampMousePos();
 		}
 
-		if( !m_UsingGamepad && (abs(AimX) > 8192 || abs(AimY) > 8192 || abs(RunX) > 8192 || abs(RunY) > 8192) )
+		if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE || abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE) )
 		{
 			UI()->AndroidShowScreenKeys(false);
 			m_UsingGamepad = true;
