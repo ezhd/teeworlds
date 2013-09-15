@@ -17,11 +17,10 @@ public:
 	SDL_Joystick *m_Joystick;
 	bool m_JoystickFirePressed;
 	bool m_JoystickRunPressed;
+	int m_JoystickTapY;
 	int64 m_JoystickTapTime;
-	int64 m_JoystickSwipeJumpAccumUp;
-	int64 m_JoystickSwipeJumpAccumDown;
-	int m_JoystickSwipeJumpY;
-	int64 m_JoystickSwipeJumpTime;
+	bool m_JoystickFirstTap;
+	
 
 	SDL_Joystick *m_Gamepad;
 	bool m_UsingGamepad;
