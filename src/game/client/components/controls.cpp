@@ -55,7 +55,10 @@ void CControls::OnReset()
 	m_JoystickFirePressed = false;
 	m_JoystickRunPressed = false;
 	m_JoystickTapTime = 0;
-	m_JoystickFirstTap = true;
+	m_JoystickSwipeJumpAccumUp = 0;
+	m_JoystickSwipeJumpAccumDown = 0;
+	m_JoystickSwipeJumpY = 0;
+	m_JoystickSwipeJumpTime = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -71,7 +74,7 @@ void CControls::OnPlayerDeath()
 	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
-	m_JoystickFirstTap = true; // Do not launch hook on first tap
+	m_JoystickTapTime = 0; // Do not launch hook on first tap
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -156,7 +159,7 @@ int CControls::SnapInput(int *pData)
 		m_InputData.m_PlayerFlags |= PLAYERFLAG_SCOREBOARD;
 
 	if(m_InputData.m_PlayerFlags != PLAYERFLAG_PLAYING)
-		m_JoystickFirstTap = true; // Do not launch hook on first tap
+		m_JoystickTapTime = 0; // Do not launch hook on first tap
 
 	if(m_LastData.m_PlayerFlags != m_InputData.m_PlayerFlags)
 		Send = true;
@@ -234,8 +237,6 @@ int CControls::SnapInput(int *pData)
 
 void CControls::OnRender()
 {
-	enum { JOYSTICK_TAP_DISTANCE = 65536 / 8, JOYSTICK_RUN_DISTANCE = 65536 / 8, GAMEPAD_DEAD_ZONE = 65536 / 8 };
-
 	if( m_Joystick )
 	{
 		// Get input from left joystick
@@ -248,33 +249,28 @@ void CControls::OnRender()
 		{
 			if( RunPressed )
 			{
-				if( m_JoystickFirstTap ) // Tap joystick with one second timeout to launch hook
-					m_JoystickFirstTap = false;
+				if( m_JoystickTapTime ) // Tap joystick with one second timeout to launch hook
+					m_InputData.m_Hook = 1;
 				else
-				{
-					if( abs(m_JoystickTapY - RunY) < JOYSTICK_TAP_DISTANCE )
-						m_InputData.m_Hook = 1;
-					else if( m_JoystickTapY > RunY )
-						m_InputData.m_Jump = 1;
-					else
-						m_InputData.m_Hook = 0;
-				}
+					m_JoystickTapTime = 1;
+				m_JoystickSwipeJumpY = RunY;
 			}
 			else
 			{
-				m_InputData.m_Jump = 0;
 				m_InputData.m_Hook = 0;
-				m_JoystickTapTime = CurTime;
+				m_JoystickSwipeJumpAccumUp = 0;
+				m_JoystickSwipeJumpAccumDown = 0;
+				m_JoystickSwipeJumpY = 0;
 			}
+			m_JoystickTapTime = m_JoystickSwipeJumpTime = CurTime;
 		}
 
 		m_JoystickRunPressed = RunPressed;
 
 		if( RunPressed )
 		{
-			m_InputDirectionLeft = (RunX < -JOYSTICK_RUN_DISTANCE);
-			m_InputDirectionRight = (RunX > JOYSTICK_RUN_DISTANCE);
-			m_JoystickTapY = RunY;
+			m_InputDirectionLeft = (RunX < -8192);
+			m_InputDirectionRight = (RunX > 8192);
 		}
 
 		// Move 300ms in the same direction, to prevent speed bump when tapping
@@ -282,6 +278,40 @@ void CControls::OnRender()
 		{
 			m_InputDirectionLeft = 0;
 			m_InputDirectionRight = 0;
+		}
+
+		// Swipe-jump
+		enum { SWIPE_JUMP_DECAY = 65536, SWIPE_JUMP_THRESHOLD = 8192 }; // Decay full height of joystick per 1 second, threshold = 1/8 joystick height
+
+		if( m_JoystickSwipeJumpAccumUp < 0 || m_JoystickSwipeJumpAccumDown < 0 )
+			m_InputData.m_Jump = 0; // Cancel previous jump with joystick, but do not prevent from jumping with button
+
+		int64 TimeDiff = CurTime - m_JoystickSwipeJumpTime;
+		m_JoystickSwipeJumpTime += TimeDiff;
+
+		if( m_JoystickSwipeJumpY > RunY )
+			m_JoystickSwipeJumpAccumUp += (m_JoystickSwipeJumpY - RunY) * time_freq();
+		if( RunY > m_JoystickSwipeJumpY )
+			m_JoystickSwipeJumpAccumDown += (RunY - m_JoystickSwipeJumpY) * time_freq();
+
+		m_JoystickSwipeJumpY = RunY;
+
+		m_JoystickSwipeJumpAccumUp -= TimeDiff * SWIPE_JUMP_DECAY;
+		m_JoystickSwipeJumpAccumDown -= TimeDiff * SWIPE_JUMP_DECAY;
+		if( m_JoystickSwipeJumpAccumUp < 0 )
+			m_JoystickSwipeJumpAccumUp += min(-m_JoystickSwipeJumpAccumUp, TimeDiff * SWIPE_JUMP_DECAY * 2);
+		if( m_JoystickSwipeJumpAccumDown < 0 )
+			m_JoystickSwipeJumpAccumDown += min(-m_JoystickSwipeJumpAccumDown, TimeDiff * SWIPE_JUMP_DECAY * 2);
+
+		if( m_JoystickSwipeJumpAccumUp > SWIPE_JUMP_THRESHOLD * time_freq() )
+		{
+			m_InputData.m_Jump = 1;
+			m_JoystickSwipeJumpAccumUp = -SWIPE_JUMP_DECAY * time_freq() / 2;
+		}
+		if( m_JoystickSwipeJumpAccumDown > SWIPE_JUMP_THRESHOLD * time_freq() )
+		{
+			m_InputData.m_Jump = 1;
+			m_JoystickSwipeJumpAccumDown = -SWIPE_JUMP_DECAY * time_freq() / 2;
 		}
 
 		// Get input from right joystick
@@ -300,9 +330,14 @@ void CControls::OnRender()
 			// Fire when releasing joystick
 			if( !AimPressed )
 			{
-				m_InputData.m_Fire ++;
-				if( m_InputData.m_Fire % 2 != AimPressed )
+				if( m_InputData.m_Hook )
+					m_InputData.m_Hook = 0;
+				else
+				{
 					m_InputData.m_Fire ++;
+					if( m_InputData.m_Fire % 2 != AimPressed )
+						m_InputData.m_Fire ++;
+				}
 			}
 		}
 
@@ -316,20 +351,21 @@ void CControls::OnRender()
 		int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
 		if( m_UsingGamepad )
 		{
-			m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
-			m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
+			m_InputDirectionLeft = (RunX < -8192);
+			m_InputDirectionRight = (RunX > 8192);
+			//m_InputData.m_Jump = abs(RunY) > 16384;
 		}
 
 		// Get input from right joystick
 		int AimX = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_X);
 		int AimY = SDL_JoystickGetAxis(m_Gamepad, RIGHT_JOYSTICK_Y);
-		if( abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE )
+		if( abs(AimX) > 8192 || abs(AimY) > 8192 )
 		{
 			m_MousePos = vec2(AimX / 30, AimY / 30);
 			ClampMousePos();
 		}
 
-		if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE || abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE) )
+		if( !m_UsingGamepad && (abs(AimX) > 8192 || abs(AimY) > 8192 || abs(RunX) > 8192 || abs(RunY) > 8192) )
 		{
 			UI()->AndroidShowScreenKeys(false);
 			m_UsingGamepad = true;
