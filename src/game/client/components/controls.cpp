@@ -267,7 +267,11 @@ void CControls::OnRender()
 			}
 			else
 			{
-				m_JoystickLastHookTime = m_InputData.m_Hook ? CurTime : 0;
+				m_JoystickLastHookTime = CurTime;
+				if( !m_InputData.m_Hook ||
+					!m_pClient->m_Snap.m_pLocalCharacter ||
+					m_pClient->m_Snap.m_pLocalCharacter->m_HookState != HOOK_GRABBED )
+					m_JoystickLastHookTime = 0;
 				m_InputData.m_Hook = 0;
 				m_JoystickSwipeJumpAccumUp = 0;
 				m_JoystickSwipeJumpAccumDown = 0;
