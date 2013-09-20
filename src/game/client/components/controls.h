@@ -18,6 +18,7 @@ public:
 	bool m_JoystickFirePressed;
 	bool m_JoystickRunPressed;
 	int64 m_JoystickTapTime;
+	int64 m_JoystickLastHookTime;
 	int64 m_JoystickSwipeJumpAccumUp;
 	int64 m_JoystickSwipeJumpAccumDown;
 	int m_JoystickSwipeJumpY;
