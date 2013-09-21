@@ -480,6 +480,19 @@ void CPlayers::RenderPlayer(
 		RenderTools()->RenderTee(&State, &Ghost, Player.m_Emote, Direction, GhostPosition); // render ghost
 	}
 
+	// Gyroscope jump meter, it does not draw anything
+	/*
+	if( pInfo.m_Local && g_Config.m_ClGyroscopeJump )
+	{
+		IGraphics::CLineItem line(Position[0] - 32.0f * m_pClient->m_pControls->m_GyroscopeJump, Position[1] + 32.0f,
+									Position[0] + 32.0f * m_pClient->m_pControls->m_GyroscopeJump, Position[1] + 32.0f);
+		RenderTools()->Graphics()->LinesBegin();
+		RenderTools()->Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+		RenderTools()->Graphics()->LinesDraw(&line, 1);
+		RenderTools()->Graphics()->LinesEnd();
+	}
+	*/
+
 	RenderInfo.m_Size = 64.0f; // force some settings
 	RenderInfo.m_ColorBody.a = 1.0f;
 	RenderInfo.m_ColorFeet.a = 1.0f;

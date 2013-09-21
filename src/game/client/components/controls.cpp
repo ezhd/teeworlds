@@ -60,6 +60,8 @@ void CControls::OnReset()
 	m_JoystickSwipeJumpAccumDown = 0;
 	m_JoystickSwipeJumpY = 0;
 	m_JoystickSwipeJumpTime = 0;
+	m_GyroscopeJump = 0;
+	m_GyroscopeJumpTime = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -244,6 +246,9 @@ void CControls::OnRender()
 		SWIPE_JUMP_THRESHOLD = 65536 / 8,
 		GAMEPAD_DEAD_ZONE = 65536 / 8,
 	};
+
+	int64 CurTime = time_get();
+
 	if( m_Joystick )
 	{
 		// Get input from left joystick
@@ -254,8 +259,6 @@ void CControls::OnRender()
 		int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
 		int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
 		bool AimPressed = (AimX != 0 || AimY != 0);
-
-		int64 CurTime = time_get();
 
 		if( m_JoystickRunPressed != RunPressed )
 		{
@@ -344,6 +347,22 @@ void CControls::OnRender()
 		}
 
 		m_JoystickFirePressed = AimPressed;
+	}
+
+	if( g_Config.m_ClGyroscopeJump )
+	{
+		float x, y, z, oldValue;
+		oldValue = m_GyroscopeJump;
+		Input()->ReadGyroscopeInput(&x, &y, &z);
+		m_GyroscopeJump += y * g_Config.m_ClGyroscopeJumpSensitivity / 40.0f;
+		m_GyroscopeJump -= ( (m_GyroscopeJump > 0) ? 1 : -1 ) * (CurTime - m_GyroscopeJumpTime) * 2.0f / time_freq();
+		m_GyroscopeJumpTime = CurTime;
+
+		if( fabsf(m_GyroscopeJump) >= 1.0f )
+			m_InputData.m_Jump = 1;
+		else
+			if( fabsf(oldValue) >= 1.0f )
+				m_InputData.m_Jump = 0;
 	}
 
 	if( m_Gamepad )
@@ -435,7 +454,6 @@ void CControls::ClampMousePos()
 	{
 		m_MousePos.x = clamp(m_MousePos.x, 200.0f, Collision()->GetWidth()*32-200.0f);
 		m_MousePos.y = clamp(m_MousePos.y, 200.0f, Collision()->GetHeight()*32-200.0f);
-
 	}
 	else
 	{

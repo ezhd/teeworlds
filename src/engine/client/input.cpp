@@ -43,6 +43,10 @@ CInput::CInput()
 	m_NumEvents = 0;
 
 	m_VideoRestartNeeded = 0;
+
+	m_Gyroscope[0] = m_Gyroscope[1] = m_Gyroscope[2] = 0.0f;
+	// Gyroscope
+	SDL_JoystickOpen(1);
 }
 
 void CInput::Init()
@@ -204,7 +208,12 @@ int CInput::Update()
 #if defined(__ANDROID__)
 				case SDL_VIDEORESIZE:
 					m_VideoRestartNeeded = 1;
+					break;
 #endif
+				case SDL_JOYAXISMOTION: // Android gyroscope
+					if( Event.jaxis.which == 1 && Event.jaxis.axis >= 2 && Event.jaxis.axis <= 4 ) // joy 1 axes 2-4 = gyroscope
+						m_Gyroscope[Event.jaxis.axis - 2] += Event.jaxis.value * (0.25f / 32767.0f);
+					break;
 			}
 
 			//
@@ -232,5 +241,12 @@ int CInput::VideoRestartNeeded()
 	return 0;
 }
 
+void CInput::ReadGyroscopeInput(float *x, float *y, float *z)
+{
+	*x = m_Gyroscope[0];
+	*y = m_Gyroscope[1];
+	*z = m_Gyroscope[2];
+	m_Gyroscope[0] = m_Gyroscope[1] = m_Gyroscope[2] = 0.0f;
+}
 
 IEngineInput *CreateEngineInput() { return new CInput; }
