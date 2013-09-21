@@ -53,7 +53,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 {
 	char aBuf[128];
 	CUIRect Label, Button, Left, Right, Game, Client;
-	MainView.HSplitTop(180.0f, &Game, &Client);
+	MainView.HSplitTop(230.0f, &Game, &Client);
 
 	// game
 	{
@@ -107,6 +107,21 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		Left.HSplitTop(20.0f, &Button, &Left);
 		if(DoButton_CheckBox(&g_Config.m_ClShowChatFriends, Localize("Show only chat messages from friends"), g_Config.m_ClShowChatFriends, &Button))
 			g_Config.m_ClShowChatFriends ^= 1;
+
+		// Gyroscope jump
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&g_Config.m_ClGyroscopeJump, Localize("Jump with gyroscope"), g_Config.m_ClGyroscopeJump, &Button))
+			g_Config.m_ClGyroscopeJump ^= 1;
+
+		Left.HSplitTop(10.0f, 0, &Left);
+		Left.VSplitLeft(20.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Label, &Left);
+		Button.VSplitRight(20.0f, &Button, 0);
+		UI()->DoLabelScaled(&Label, Localize("Gyroscope sensitivity"), 13.0f, -1);
+		Left.HSplitTop(20.0f, &Button, 0);
+		Button.HMargin(2.0f, &Button);
+		g_Config.m_ClGyroscopeJumpSensitivity = static_cast<int>(DoScrollbarH(&g_Config.m_ClGyroscopeJumpSensitivity, &Button, g_Config.m_ClGyroscopeJumpSensitivity/100.0f)*100.0f+0.1f);
 
 		// name plates
 		Right.HSplitTop(20.0f, &Button, &Right);
