@@ -355,7 +355,10 @@ void CControls::OnRender()
 		oldValue = m_GyroscopeJump;
 		Input()->ReadGyroscopeInput(&x, &y, &z);
 		m_GyroscopeJump += y * g_Config.m_ClGyroscopeJumpSensitivity / 40.0f;
-		m_GyroscopeJump -= ( (m_GyroscopeJump > 0) ? 1 : -1 ) * (CurTime - m_GyroscopeJumpTime) * 2.0f / time_freq();
+		float timeDecay = (CurTime - m_GyroscopeJumpTime) * 4.0f / time_freq();
+		if( timeDecay > 1.0f )
+			timeDecay = 1.0f;
+		m_GyroscopeJump -= (m_GyroscopeJump > 0) ? timeDecay : -timeDecay;
 		m_GyroscopeJumpTime = CurTime;
 
 		if( fabsf(m_GyroscopeJump) >= 1.0f )
@@ -363,6 +366,7 @@ void CControls::OnRender()
 		else
 			if( fabsf(oldValue) >= 1.0f )
 				m_InputData.m_Jump = 0;
+		//dbg_msg("", "m_GyroscopeJump %f m_InputData.m_Jump %d", m_GyroscopeJump, m_InputData.m_Jump);
 	}
 
 	if( m_Gamepad )
