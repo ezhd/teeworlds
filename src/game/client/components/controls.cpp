@@ -354,8 +354,8 @@ void CControls::OnRender()
 		float x, y, z, oldValue;
 		oldValue = m_GyroscopeJump;
 		Input()->ReadGyroscopeInput(&x, &y, &z);
-		m_GyroscopeJump += y * g_Config.m_ClGyroscopeJumpSensitivity / 40.0f;
-		float timeDecay = (CurTime - m_GyroscopeJumpTime) * 4.0f / time_freq();
+		m_GyroscopeJump += y * g_Config.m_ClGyroscopeJumpSensitivity / 35.0f;
+		float timeDecay = (CurTime - m_GyroscopeJumpTime) * 5.0f / time_freq();
 		if( timeDecay > 1.0f )
 			timeDecay = 1.0f;
 		m_GyroscopeJump -= (m_GyroscopeJump > 0) ? timeDecay : -timeDecay;
