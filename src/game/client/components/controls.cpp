@@ -248,6 +248,7 @@ void CControls::OnRender()
 	};
 
 	int64 CurTime = time_get();
+	bool FireWasPressed = false;
 
 	if( m_Joystick )
 	{
@@ -343,6 +344,7 @@ void CControls::OnRender()
 				m_InputData.m_Fire ++;
 				if( m_InputData.m_Fire % 2 != AimPressed )
 					m_InputData.m_Fire ++;
+				FireWasPressed = true;
 			}
 		}
 
@@ -401,7 +403,7 @@ void CControls::OnRender()
 		// Keep track of ammo count, we know weapon ammo only when we switch to that weapon, this is tracked on server and protocol does not track that
 		m_AmmoCount[m_pClient->m_Snap.m_pLocalCharacter->m_Weapon%NUM_WEAPONS] = m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount;
 		// Autoswitch weapon if we're out of ammo
-		if( m_InputData.m_Fire % 2 != 0 &&
+		if( (m_InputData.m_Fire % 2 != 0 || FireWasPressed) &&
 			m_pClient->m_Snap.m_pLocalCharacter->m_AmmoCount == 0 &&
 			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_HAMMER &&
 			m_pClient->m_Snap.m_pLocalCharacter->m_Weapon != WEAPON_NINJA )
