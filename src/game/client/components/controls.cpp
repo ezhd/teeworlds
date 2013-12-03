@@ -238,7 +238,7 @@ void CControls::OnRender()
 	enum {
 		JOYSTICK_RUN_DISTANCE = 65536 / 8,
 		SWIPE_JUMP_DECAY = 65536, // Decay full height of joystick per 1 second, threshold = 1/8 joystick height
-		SWIPE_JUMP_THRESHOLD = 65536 / 8,
+		SWIPE_JUMP_THRESHOLD = 65536 / 16,
 		GAMEPAD_DEAD_ZONE = 65536 / 8,
 	};
 
@@ -285,19 +285,21 @@ void CControls::OnRender()
 			m_InputDirectionRight = 0;
 		}
 
+		if( RunPressed && m_JoystickSwipeJumpClear == 0 && (
+			(m_JoystickSwipeJumpY == 0 && RunY > SWIPE_JUMP_THRESHOLD) ||
+			(m_JoystickSwipeJumpY == 1 && RunY < -SWIPE_JUMP_THRESHOLD) ) )
+		{
+			m_InputData.m_Jump = 1;
+			m_JoystickSwipeJumpY = (RunY > 0);
+			m_JoystickSwipeJumpClear = time_freq();
+		}
+
 		if( m_JoystickSwipeJumpClear && CurTime > m_JoystickSwipeJumpClear + time_freq() / 6 )
 		{
 			// 160 ms to allow for network lag
 			// if we set this to zero immediately we'll get just one network packet which may get missed
 			m_InputData.m_Jump = 0; // Cancel previous jump with joystick, but do not prevent from jumping with button
 			m_JoystickSwipeJumpClear = 0;
-		}
-
-		if( RunPressed && m_JoystickSwipeJumpY != (RunY > 0) )
-		{
-			m_InputData.m_Jump = 1;
-			m_JoystickSwipeJumpY = (RunY > 0);
-			m_JoystickSwipeJumpClear = time_freq();
 		}
 
 		if( AimPressed )
