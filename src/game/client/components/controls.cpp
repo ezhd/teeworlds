@@ -55,7 +55,7 @@ void CControls::OnReset()
 	m_JoystickFirePressed = false;
 	m_JoystickRunPressed = false;
 	m_JoystickTapTime = 0;
-	m_JoystickSwipeJumpY = 0;
+	m_JoystickSwipeJumpY = false;
 	m_JoystickSwipeJumpClear = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
@@ -285,13 +285,17 @@ void CControls::OnRender()
 			m_InputDirectionRight = 0;
 		}
 
+		//dbg_msg("dbg", "RunPressed %d m_JoystickSwipeJumpClear %lld m_JoystickSwipeJumpY %d RunY %d cond %d",
+		//		RunPressed, m_JoystickSwipeJumpClear, (int)m_JoystickSwipeJumpY, RunY,
+		//		(int)((!m_JoystickSwipeJumpY && RunY > SWIPE_JUMP_THRESHOLD) || (m_JoystickSwipeJumpY && RunY < -SWIPE_JUMP_THRESHOLD)));
+
 		if( RunPressed && m_JoystickSwipeJumpClear == 0 && (
-			(m_JoystickSwipeJumpY == 0 && RunY > SWIPE_JUMP_THRESHOLD) ||
-			(m_JoystickSwipeJumpY == 1 && RunY < -SWIPE_JUMP_THRESHOLD) ) )
+			(!m_JoystickSwipeJumpY && RunY > SWIPE_JUMP_THRESHOLD) ||
+			(m_JoystickSwipeJumpY && RunY < -SWIPE_JUMP_THRESHOLD) ) )
 		{
 			m_InputData.m_Jump = 1;
 			m_JoystickSwipeJumpY = (RunY > 0);
-			m_JoystickSwipeJumpClear = time_freq();
+			m_JoystickSwipeJumpClear = CurTime;
 		}
 
 		if( m_JoystickSwipeJumpClear && CurTime > m_JoystickSwipeJumpClear + time_freq() / 6 )
