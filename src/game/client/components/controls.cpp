@@ -56,10 +56,8 @@ void CControls::OnReset()
 	m_JoystickRunPressed = false;
 	m_JoystickTapTime = 0;
 	m_JoystickLastHookTime = 0;
-	m_JoystickSwipeJumpAccumUp = 0;
-	m_JoystickSwipeJumpAccumDown = 0;
 	m_JoystickSwipeJumpY = 0;
-	m_JoystickSwipeJumpTime = 0;
+	m_JoystickSwipeJumpClear = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -265,7 +263,7 @@ void CControls::OnRender()
 			{
 				if( m_JoystickTapTime && AimPressed && m_JoystickLastHookTime + time_freq() / 2 < CurTime ) // Tap joystick with one second timeout to launch hook
 					m_InputData.m_Hook = 1;
-				m_JoystickSwipeJumpY = RunY;
+				m_JoystickSwipeJumpY = (RunY > 0);
 			}
 			else
 			{
@@ -275,11 +273,8 @@ void CControls::OnRender()
 					m_pClient->m_Snap.m_pLocalCharacter->m_HookState != HOOK_GRABBED )
 					m_JoystickLastHookTime = 0;
 				m_InputData.m_Hook = 0;
-				m_JoystickSwipeJumpAccumUp = 0;
-				m_JoystickSwipeJumpAccumDown = 0;
-				m_JoystickSwipeJumpY = 0;
 			}
-			m_JoystickTapTime = m_JoystickSwipeJumpTime = CurTime;
+			m_JoystickTapTime = CurTime;
 		}
 
 		m_JoystickRunPressed = RunPressed;
@@ -297,35 +292,19 @@ void CControls::OnRender()
 			m_InputDirectionRight = 0;
 		}
 
-		if( m_JoystickSwipeJumpAccumUp < 0 || m_JoystickSwipeJumpAccumDown < 0 )
+		if( m_JoystickSwipeJumpClear && CurTime > m_JoystickSwipeJumpClear + time_freq() / 6 )
+		{
+			// 160 ms to allow for network lag
+			// if we set this to zero immediately we'll get just one network packet which may get missed
 			m_InputData.m_Jump = 0; // Cancel previous jump with joystick, but do not prevent from jumping with button
-
-		int64 TimeDiff = CurTime - m_JoystickSwipeJumpTime;
-		m_JoystickSwipeJumpTime += TimeDiff;
-
-		if( m_JoystickSwipeJumpY > RunY )
-			m_JoystickSwipeJumpAccumUp += (m_JoystickSwipeJumpY - RunY) * time_freq();
-		if( RunY > m_JoystickSwipeJumpY )
-			m_JoystickSwipeJumpAccumDown += (RunY - m_JoystickSwipeJumpY) * time_freq();
-
-		m_JoystickSwipeJumpY = RunY;
-
-		m_JoystickSwipeJumpAccumUp -= TimeDiff * SWIPE_JUMP_DECAY;
-		m_JoystickSwipeJumpAccumDown -= TimeDiff * SWIPE_JUMP_DECAY;
-		if( m_JoystickSwipeJumpAccumUp < 0 )
-			m_JoystickSwipeJumpAccumUp += min(-m_JoystickSwipeJumpAccumUp, TimeDiff * SWIPE_JUMP_DECAY * 2);
-		if( m_JoystickSwipeJumpAccumDown < 0 )
-			m_JoystickSwipeJumpAccumDown += min(-m_JoystickSwipeJumpAccumDown, TimeDiff * SWIPE_JUMP_DECAY * 2);
-
-		if( m_JoystickSwipeJumpAccumUp > SWIPE_JUMP_THRESHOLD * time_freq() )
-		{
-			m_InputData.m_Jump = 1;
-			m_JoystickSwipeJumpAccumUp = -SWIPE_JUMP_DECAY * time_freq() / 2;
+			m_JoystickSwipeJumpClear = 0;
 		}
-		if( m_JoystickSwipeJumpAccumDown > SWIPE_JUMP_THRESHOLD * time_freq() )
+
+		if( RunPressed && m_JoystickSwipeJumpY != (RunY > 0) )
 		{
 			m_InputData.m_Jump = 1;
-			m_JoystickSwipeJumpAccumDown = -SWIPE_JUMP_DECAY * time_freq() / 2;
+			m_JoystickSwipeJumpY = (RunY > 0);
+			m_JoystickSwipeJumpClear = time_freq();
 		}
 
 		if( AimPressed )
