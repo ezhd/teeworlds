@@ -55,7 +55,6 @@ void CControls::OnReset()
 	m_JoystickFirePressed = false;
 	m_JoystickRunPressed = false;
 	m_JoystickTapTime = 0;
-	m_JoystickLastHookTime = 0;
 	m_JoystickSwipeJumpY = 0;
 	m_JoystickSwipeJumpClear = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
@@ -261,19 +260,13 @@ void CControls::OnRender()
 		{
 			if( RunPressed )
 			{
-				if( m_JoystickTapTime && AimPressed && m_JoystickLastHookTime + time_freq() / 2 < CurTime ) // Tap joystick with one second timeout to launch hook
+				// Tap joystick with one second timeout to launch hook
+				if( m_JoystickTapTime && AimPressed ) // m_JoystickTapTime is to check that we do not launch hook right after spawning
 					m_InputData.m_Hook = 1;
 				m_JoystickSwipeJumpY = (RunY > 0);
 			}
 			else
-			{
-				m_JoystickLastHookTime = CurTime;
-				if( !m_InputData.m_Hook ||
-					!m_pClient->m_Snap.m_pLocalCharacter ||
-					m_pClient->m_Snap.m_pLocalCharacter->m_HookState != HOOK_GRABBED )
-					m_JoystickLastHookTime = 0;
 				m_InputData.m_Hook = 0;
-			}
 			m_JoystickTapTime = CurTime;
 		}
 
