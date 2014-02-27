@@ -80,8 +80,6 @@ public:
 	virtual int MouseDoubleClick() = 0;
 
 	virtual void MouseRelative(float *x, float *y) = 0;
-
-	virtual void ReadGyroscopeInput(float *x, float *y, float *z) = 0;
 };
 
 

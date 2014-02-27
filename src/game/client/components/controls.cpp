@@ -55,13 +55,8 @@ void CControls::OnReset()
 	m_JoystickFirePressed = false;
 	m_JoystickRunPressed = false;
 	m_JoystickTapTime = 0;
-	m_JoystickLastHookTime = 0;
-	m_JoystickSwipeJumpAccumUp = 0;
-	m_JoystickSwipeJumpAccumDown = 0;
-	m_JoystickSwipeJumpY = 0;
-	m_JoystickSwipeJumpTime = 0;
-	m_GyroscopeJump = 0;
-	m_GyroscopeJumpTime = 0;
+	m_JoystickSwipeJumpY = false;
+	m_JoystickSwipeJumpClear = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -243,7 +238,7 @@ void CControls::OnRender()
 	enum {
 		JOYSTICK_RUN_DISTANCE = 65536 / 8,
 		SWIPE_JUMP_DECAY = 65536, // Decay full height of joystick per 1 second, threshold = 1/8 joystick height
-		SWIPE_JUMP_THRESHOLD = 65536 / 8,
+		SWIPE_JUMP_THRESHOLD = 65536 / 16,
 		GAMEPAD_DEAD_ZONE = 65536 / 8,
 	};
 
@@ -265,23 +260,14 @@ void CControls::OnRender()
 		{
 			if( RunPressed )
 			{
-				if( m_JoystickTapTime && AimPressed && m_JoystickLastHookTime + time_freq() / 2 < CurTime ) // Tap joystick with one second timeout to launch hook
+				// Tap joystick with one second timeout to launch hook
+				if( m_JoystickTapTime && AimPressed ) // m_JoystickTapTime is to check that we do not launch hook right after spawning
 					m_InputData.m_Hook = 1;
-				m_JoystickSwipeJumpY = RunY;
+				m_JoystickSwipeJumpY = (RunY > 0);
 			}
 			else
-			{
-				m_JoystickLastHookTime = CurTime;
-				if( !m_InputData.m_Hook ||
-					!m_pClient->m_Snap.m_pLocalCharacter ||
-					m_pClient->m_Snap.m_pLocalCharacter->m_HookState != HOOK_GRABBED )
-					m_JoystickLastHookTime = 0;
 				m_InputData.m_Hook = 0;
-				m_JoystickSwipeJumpAccumUp = 0;
-				m_JoystickSwipeJumpAccumDown = 0;
-				m_JoystickSwipeJumpY = 0;
-			}
-			m_JoystickTapTime = m_JoystickSwipeJumpTime = CurTime;
+			m_JoystickTapTime = CurTime;
 		}
 
 		m_JoystickRunPressed = RunPressed;
@@ -299,35 +285,25 @@ void CControls::OnRender()
 			m_InputDirectionRight = 0;
 		}
 
-		if( m_JoystickSwipeJumpAccumUp < 0 || m_JoystickSwipeJumpAccumDown < 0 )
-			m_InputData.m_Jump = 0; // Cancel previous jump with joystick, but do not prevent from jumping with button
+		//dbg_msg("dbg", "RunPressed %d m_JoystickSwipeJumpClear %lld m_JoystickSwipeJumpY %d RunY %d cond %d",
+		//		RunPressed, m_JoystickSwipeJumpClear, (int)m_JoystickSwipeJumpY, RunY,
+		//		(int)((!m_JoystickSwipeJumpY && RunY > SWIPE_JUMP_THRESHOLD) || (m_JoystickSwipeJumpY && RunY < -SWIPE_JUMP_THRESHOLD)));
 
-		int64 TimeDiff = CurTime - m_JoystickSwipeJumpTime;
-		m_JoystickSwipeJumpTime += TimeDiff;
-
-		if( m_JoystickSwipeJumpY > RunY )
-			m_JoystickSwipeJumpAccumUp += (m_JoystickSwipeJumpY - RunY) * time_freq();
-		if( RunY > m_JoystickSwipeJumpY )
-			m_JoystickSwipeJumpAccumDown += (RunY - m_JoystickSwipeJumpY) * time_freq();
-
-		m_JoystickSwipeJumpY = RunY;
-
-		m_JoystickSwipeJumpAccumUp -= TimeDiff * SWIPE_JUMP_DECAY;
-		m_JoystickSwipeJumpAccumDown -= TimeDiff * SWIPE_JUMP_DECAY;
-		if( m_JoystickSwipeJumpAccumUp < 0 )
-			m_JoystickSwipeJumpAccumUp += min(-m_JoystickSwipeJumpAccumUp, TimeDiff * SWIPE_JUMP_DECAY * 2);
-		if( m_JoystickSwipeJumpAccumDown < 0 )
-			m_JoystickSwipeJumpAccumDown += min(-m_JoystickSwipeJumpAccumDown, TimeDiff * SWIPE_JUMP_DECAY * 2);
-
-		if( m_JoystickSwipeJumpAccumUp > SWIPE_JUMP_THRESHOLD * time_freq() )
+		if( RunPressed && m_JoystickSwipeJumpClear == 0 && (
+			(!m_JoystickSwipeJumpY && RunY > SWIPE_JUMP_THRESHOLD) ||
+			(m_JoystickSwipeJumpY && RunY < -SWIPE_JUMP_THRESHOLD) ) )
 		{
 			m_InputData.m_Jump = 1;
-			m_JoystickSwipeJumpAccumUp = -SWIPE_JUMP_DECAY * time_freq() / 2;
+			m_JoystickSwipeJumpY = (RunY > 0);
+			m_JoystickSwipeJumpClear = CurTime;
 		}
-		if( m_JoystickSwipeJumpAccumDown > SWIPE_JUMP_THRESHOLD * time_freq() )
+
+		if( m_JoystickSwipeJumpClear && CurTime > m_JoystickSwipeJumpClear + time_freq() / 6 )
 		{
-			m_InputData.m_Jump = 1;
-			m_JoystickSwipeJumpAccumDown = -SWIPE_JUMP_DECAY * time_freq() / 2;
+			// 160 ms to allow for network lag
+			// if we set this to zero immediately we'll get just one network packet which may get missed
+			m_InputData.m_Jump = 0; // Cancel previous jump with joystick, but do not prevent from jumping with button
+			m_JoystickSwipeJumpClear = 0;
 		}
 
 		if( AimPressed )
@@ -349,26 +325,6 @@ void CControls::OnRender()
 		}
 
 		m_JoystickFirePressed = AimPressed;
-	}
-
-	if( g_Config.m_ClGyroscopeJump )
-	{
-		float x, y, z, oldValue;
-		oldValue = m_GyroscopeJump;
-		Input()->ReadGyroscopeInput(&x, &y, &z);
-		m_GyroscopeJump += y * g_Config.m_ClGyroscopeJumpSensitivity / 35.0f;
-		float timeDecay = (CurTime - m_GyroscopeJumpTime) * 5.0f / time_freq();
-		if( timeDecay > 1.0f )
-			timeDecay = 1.0f;
-		m_GyroscopeJump -= (m_GyroscopeJump > 0) ? timeDecay : -timeDecay;
-		m_GyroscopeJumpTime = CurTime;
-
-		if( fabsf(m_GyroscopeJump) >= 1.0f )
-			m_InputData.m_Jump = 1;
-		else
-			if( fabsf(oldValue) >= 1.0f )
-				m_InputData.m_Jump = 0;
-		//dbg_msg("", "m_GyroscopeJump %f m_InputData.m_Jump %d", m_GyroscopeJump, m_InputData.m_Jump);
 	}
 
 	if( m_Gamepad )

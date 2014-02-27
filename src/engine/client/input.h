@@ -14,8 +14,6 @@ class CInput : public IEngineInput
 
 	int m_VideoRestartNeeded;
 
-	float m_Gyroscope[3];
-
 	void AddEvent(int Unicode, int Key, int Flags);
 
 	IEngineGraphics *Graphics() { return m_pGraphics; }
@@ -38,8 +36,6 @@ public:
 	virtual int Update();
 
 	virtual int VideoRestartNeeded();
-
-	virtual void ReadGyroscopeInput(float *x, float *y, float *z);
 };
 
 #endif
