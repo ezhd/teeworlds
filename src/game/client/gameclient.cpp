@@ -261,6 +261,8 @@ void CGameClient::OnInit()
 		g_GameClient.m_pMenus->RenderLoading();
 	}
 
+	m_pMapimages->OnMapLoad(); // Reload map textures on Android
+
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->OnReset();
 
