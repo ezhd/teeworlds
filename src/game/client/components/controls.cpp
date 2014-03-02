@@ -15,7 +15,10 @@
 
 #include "controls.h"
 
-enum { LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1, RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3, NUM_JOYSTICK_AXES = 4 };
+enum {	LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1,
+		RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3,
+		SECOND_RIGHT_JOYSTICK_X = 20, SECOND_RIGHT_JOYSTICK_Y = 21,
+		NUM_JOYSTICK_AXES = 22 };
 
 CControls::CControls()
 {
@@ -55,8 +58,6 @@ void CControls::OnReset()
 	m_JoystickFirePressed = false;
 	m_JoystickRunPressed = false;
 	m_JoystickTapTime = 0;
-	m_JoystickSwipeJumpY = false;
-	m_JoystickSwipeJumpClear = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
@@ -237,8 +238,6 @@ void CControls::OnRender()
 {
 	enum {
 		JOYSTICK_RUN_DISTANCE = 65536 / 8,
-		SWIPE_JUMP_DECAY = 65536, // Decay full height of joystick per 1 second, threshold = 1/8 joystick height
-		SWIPE_JUMP_THRESHOLD = 65536 / 16,
 		GAMEPAD_DEAD_ZONE = 65536 / 8,
 	};
 
@@ -252,21 +251,23 @@ void CControls::OnRender()
 		int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
 		bool RunPressed = (RunX != 0 || RunY != 0);
 		// Get input from right joystick
-		int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
-		int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
+		int AimX = SDL_JoystickGetAxis(m_Joystick, SECOND_RIGHT_JOYSTICK_X);
+		int AimY = SDL_JoystickGetAxis(m_Joystick, SECOND_RIGHT_JOYSTICK_Y);
 		bool AimPressed = (AimX != 0 || AimY != 0);
+		// Get input from another right joystick
+		int HookX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
+		int HookY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
+		bool HookPressed = (HookX != 0 || HookY != 0);
 
 		if( m_JoystickRunPressed != RunPressed )
 		{
 			if( RunPressed )
 			{
-				// Tap joystick with one second timeout to launch hook
-				if( m_JoystickTapTime && AimPressed ) // m_JoystickTapTime is to check that we do not launch hook right after spawning
-					m_InputData.m_Hook = 1;
-				m_JoystickSwipeJumpY = (RunY > 0);
+				if( m_JoystickTapTime + time_freq() > CurTime ) // Tap in less than 1 second to jump
+					m_InputData.m_Jump = 1;
 			}
 			else
-				m_InputData.m_Hook = 0;
+				m_InputData.m_Jump = 0;
 			m_JoystickTapTime = CurTime;
 		}
 
@@ -289,21 +290,15 @@ void CControls::OnRender()
 		//		RunPressed, m_JoystickSwipeJumpClear, (int)m_JoystickSwipeJumpY, RunY,
 		//		(int)((!m_JoystickSwipeJumpY && RunY > SWIPE_JUMP_THRESHOLD) || (m_JoystickSwipeJumpY && RunY < -SWIPE_JUMP_THRESHOLD)));
 
-		if( RunPressed && m_JoystickSwipeJumpClear == 0 && (
-			(!m_JoystickSwipeJumpY && RunY > SWIPE_JUMP_THRESHOLD) ||
-			(m_JoystickSwipeJumpY && RunY < -SWIPE_JUMP_THRESHOLD) ) )
+		if( HookPressed )
 		{
-			m_InputData.m_Jump = 1;
-			m_JoystickSwipeJumpY = (RunY > 0);
-			m_JoystickSwipeJumpClear = CurTime;
+			m_MousePos = vec2(HookX / 30, HookY / 30);
+			ClampMousePos();
+			m_InputData.m_Hook = 1;
 		}
-
-		if( m_JoystickSwipeJumpClear && CurTime > m_JoystickSwipeJumpClear + time_freq() / 6 )
+		else
 		{
-			// 160 ms to allow for network lag
-			// if we set this to zero immediately we'll get just one network packet which may get missed
-			m_InputData.m_Jump = 0; // Cancel previous jump with joystick, but do not prevent from jumping with button
-			m_JoystickSwipeJumpClear = 0;
+			m_InputData.m_Hook = 0;
 		}
 
 		if( AimPressed )

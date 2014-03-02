@@ -80,8 +80,10 @@ void CUI::AndroidShowScreenKeys(bool shown)
 	{
 		//dbg_msg("dbg", "CUI::AndroidShowScreenKeys: ScreenKeyboardInitialized");
 		ScreenKeyboardInitialized = true;
+
 		for( int i = 0; i < SDL_ANDROID_SCREENKEYBOARD_BUTTON_NUM; i++ )
 			SDL_ANDROID_GetScreenKeyboardButtonPos( i, &Buttons[i] );
+
 		if( !SDL_ANDROID_GetScreenKeyboardRedefinedByUser() )
 		{
 			int ScreenW = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x +
@@ -92,14 +94,16 @@ void CUI::AndroidShowScreenKeys(bool shown)
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x =
 				ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].w;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y =
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y -
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h * 2.0f;
-			// Jump button above Weapnext
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].y -
+				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h;
+			// Hide Hook button(it was above Weapnext)
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y -
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w = 0;
+			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h = 0;
 			// Hide Weapprev button
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x;
@@ -113,15 +117,16 @@ void CUI::AndroidShowScreenKeys(bool shown)
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y -
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].h * 2.0f;
-			// Bigger text input button above scores
-			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].w =
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].w;
-			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h =
-				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].h;
+			// Text input button above scores
+			//Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].w =
+			//	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].w;
+			//Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h =
+			//	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].h;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].y =
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y -
 				Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h;
 			// Bigger joysticks
+			/*
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].w *= 1.25;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].h *= 1.25;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y =
@@ -132,6 +137,7 @@ void CUI::AndroidShowScreenKeys(bool shown)
 				ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w;
 			Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y =
 				ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h;
+			*/
 		}
 	}
 
