@@ -279,8 +279,8 @@ void CControls::OnRender()
 			m_InputDirectionRight = (RunX > JOYSTICK_RUN_DISTANCE);
 		}
 
-		// Move 300ms in the same direction, to prevent speed bump when tapping
-		if( !RunPressed && m_JoystickTapTime + time_freq() / 3 > CurTime )
+		// Move 500ms in the same direction, to prevent speed bump when tapping
+		if( !RunPressed && m_JoystickTapTime + time_freq() / 2 > CurTime )
 		{
 			m_InputDirectionLeft = 0;
 			m_InputDirectionRight = 0;
