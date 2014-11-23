@@ -264,24 +264,7 @@ void CChat::EnableMode(int Team)
 		Input()->ClearEvents();
 		m_CompletionChosen = -1;
 
-		// Those wankers cannot even use std::string, stupid bums, so now I have to endure their half-assed string functions and memory management
-		char *msg = (char *)mem_alloc(1, 1);
-		msg[0] = 0;
-		for (int count = 0, line = m_CurrentLine; count < 5; count++, line = (line-1+MAX_LINES)%MAX_LINES)
-		{
-			if (!m_aLines[line].m_aText[0] || !m_aLines[line].m_aName[0])
-				continue;
-			char *msg1 = (char *)mem_alloc(str_length(m_aLines[line].m_aText) + str_length(m_aLines[line].m_aName) + str_length(msg) + 10, 1);
-			str_copy(msg1, m_aLines[line].m_aName, str_length(m_aLines[line].m_aName) + 1);
-			str_copy(msg1 + str_length(msg1), m_aLines[line].m_aText, str_length(m_aLines[line].m_aText) + 1);
-			str_copy(msg1 + str_length(msg1), "\n", 2);
-			str_copy(msg1 + str_length(msg1), msg, str_length(msg) + 1);
-			mem_free(msg);
-			msg = msg1;
-		}
-
-		UI()->AndroidShowTextInput("", msg);
-		mem_free(msg);
+		UI()->AndroidShowTextInput("");
 	}
 }
 
@@ -415,6 +398,27 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 			m_pClient->m_pSounds->Play(CSounds::CHN_GUI, SOUND_CHAT_CLIENT, 0);
 			m_aLastSoundPlayed[CHAT_CLIENT] = Now;
 		}
+	}
+
+	{
+		// Those wankers cannot even use std::string, stupid bums, so now I have to endure their half-assed string functions and memory management
+		char *msg = (char *)mem_alloc(1, 1);
+		msg[0] = 0;
+		for (int count = 0, line = m_CurrentLine; count < 5; count++, line = (line-1+MAX_LINES)%MAX_LINES)
+		{
+			if (!m_aLines[line].m_aText[0] || !m_aLines[line].m_aName[0])
+				continue;
+			char *msg1 = (char *)mem_alloc(str_length(m_aLines[line].m_aText) + str_length(m_aLines[line].m_aName) + str_length(msg) + 10, 1);
+			str_copy(msg1, m_aLines[line].m_aName, str_length(m_aLines[line].m_aName) + 1);
+			str_copy(msg1 + str_length(msg1), m_aLines[line].m_aText, str_length(m_aLines[line].m_aText) + 1);
+			str_copy(msg1 + str_length(msg1), "\n", 2);
+			str_copy(msg1 + str_length(msg1), msg, str_length(msg) + 1);
+			mem_free(msg);
+			msg = msg1;
+		}
+
+		UI()->AndroidTextInputHintMessage(msg);
+		mem_free(msg);
 	}
 }
 

@@ -150,11 +150,17 @@ void CUI::AndroidShowScreenKeys(bool shown)
 #endif
 }
 
-void CUI::AndroidShowTextInput(const char *text, const char *hintText)
+void CUI::AndroidShowTextInput(const char *text)
+{
+#if defined(__ANDROID__)
+	SDL_ANDROID_ToggleScreenKeyboardTextInput(text);
+#endif
+}
+
+void CUI::AndroidTextInputHintMessage(const char *hintText)
 {
 #if defined(__ANDROID__)
 	SDL_ANDROID_SetScreenKeyboardHintMesage(hintText);
-	SDL_ANDROID_ToggleScreenKeyboardTextInput(text);
 #endif
 }
 
