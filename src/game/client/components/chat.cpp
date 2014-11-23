@@ -272,11 +272,11 @@ void CChat::EnableMode(int Team)
 			if (!m_aLines[line].m_aText[0] || !m_aLines[line].m_aName[0])
 				continue;
 			char *msg1 = (char *)mem_alloc(str_length(m_aLines[line].m_aText) + str_length(m_aLines[line].m_aName) + str_length(msg) + 10, 1);
-			str_copy(msg1, m_aLines[line].m_aName, str_length(m_aLines[line].m_aName));
-			str_copy(msg1 + str_length(msg1) + 1, ": ", 2);
-			str_copy(msg1 + str_length(msg1) + 1, m_aLines[line].m_aText, str_length(m_aLines[line].m_aText));
-			str_copy(msg1 + str_length(msg1) + 1, "\n", 1);
-			str_copy(msg1 + str_length(msg1) + 1, msg, str_length(msg));
+			str_copy(msg1, m_aLines[line].m_aName, str_length(m_aLines[line].m_aName) + 1);
+			str_copy(msg1 + str_length(msg1), ": ", 3);
+			str_copy(msg1 + str_length(msg1), m_aLines[line].m_aText, str_length(m_aLines[line].m_aText) + 1);
+			str_copy(msg1 + str_length(msg1), "\n", 2);
+			str_copy(msg1 + str_length(msg1), msg, str_length(msg) + 1);
 			mem_free(msg);
 			msg = msg1;
 		}
