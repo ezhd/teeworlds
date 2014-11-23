@@ -233,7 +233,7 @@ int CControls::SnapInput(int *pData)
 void CControls::OnRender()
 {
 	enum {
-		JOYSTICK_RUN_DISTANCE = 65536 / 8,
+		JOYSTICK_RUN_DISTANCE = 0; //65536 / 8,
 		GAMEPAD_DEAD_ZONE = 65536 / 8,
 	};
 
@@ -247,12 +247,12 @@ void CControls::OnRender()
 		int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
 		bool RunPressed = (RunX != 0 || RunY != 0);
 		// Get input from right joystick
-		int AimX = SDL_JoystickGetAxis(m_Joystick, SECOND_RIGHT_JOYSTICK_X);
-		int AimY = SDL_JoystickGetAxis(m_Joystick, SECOND_RIGHT_JOYSTICK_Y);
+		int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
+		int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
 		bool AimPressed = (AimX != 0 || AimY != 0);
 		// Get input from another right joystick
-		int HookX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
-		int HookY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
+		int HookX = SDL_JoystickGetAxis(m_Joystick, SECOND_RIGHT_JOYSTICK_X);
+		int HookY = SDL_JoystickGetAxis(m_Joystick, SECOND_RIGHT_JOYSTICK_Y);
 		bool HookPressed = (HookX != 0 || HookY != 0);
 
 		if( m_JoystickRunPressed != RunPressed )
