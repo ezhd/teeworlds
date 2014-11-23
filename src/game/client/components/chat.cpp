@@ -273,10 +273,10 @@ void CChat::EnableMode(int Team)
 				continue;
 			char *msg1 = (char *)mem_alloc(str_length(m_aLines[line].m_aText) + str_length(m_aLines[line].m_aName) + str_length(msg) + 10, 1);
 			str_copy(msg1, m_aLines[line].m_aName, str_length(m_aLines[line].m_aName) + 1);
-			str_copy(msg1 + str_length(msg1), ": ", 3);
 			str_copy(msg1 + str_length(msg1), m_aLines[line].m_aText, str_length(m_aLines[line].m_aText) + 1);
 			str_copy(msg1 + str_length(msg1), "\n", 2);
 			str_copy(msg1 + str_length(msg1), msg, str_length(msg) + 1);
+			dbg_msg("Chat", "%s", msg1);
 			mem_free(msg);
 			msg = msg1;
 		}
