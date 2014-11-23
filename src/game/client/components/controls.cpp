@@ -73,7 +73,6 @@ void CControls::OnPlayerDeath()
 	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
-	m_JoystickTapTime = 0; // Do not launch hook on first tap
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -156,9 +155,6 @@ int CControls::SnapInput(int *pData)
 
 	if(m_pClient->m_pScoreboard->Active())
 		m_InputData.m_PlayerFlags |= PLAYERFLAG_SCOREBOARD;
-
-	if(m_InputData.m_PlayerFlags != PLAYERFLAG_PLAYING)
-		m_JoystickTapTime = 0; // Do not launch hook on first tap
 
 	if(m_LastData.m_PlayerFlags != m_InputData.m_PlayerFlags)
 		Send = true;
@@ -261,10 +257,9 @@ void CControls::OnRender()
 
 		if( m_JoystickRunPressed != RunPressed )
 		{
-			if( RunPressed )
+			if( RunPressed && RunY < 0 )
 			{
-				if( m_JoystickTapTime + time_freq() > CurTime ) // Tap in less than 1 second to jump
-					m_InputData.m_Jump = 1;
+				m_InputData.m_Jump = 1;
 			}
 			else
 				m_InputData.m_Jump = 0;
