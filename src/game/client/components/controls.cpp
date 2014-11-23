@@ -233,7 +233,7 @@ int CControls::SnapInput(int *pData)
 void CControls::OnRender()
 {
 	enum {
-		JOYSTICK_RUN_DISTANCE = 0; //65536 / 8,
+		JOYSTICK_RUN_DISTANCE = 0, //65536 / 8,
 		GAMEPAD_DEAD_ZONE = 65536 / 8,
 	};
 
