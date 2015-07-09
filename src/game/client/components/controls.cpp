@@ -240,7 +240,7 @@ void CControls::OnRender()
 	int64 CurTime = time_get();
 	bool FireWasPressed = false;
 
-	if( m_Joystick )
+	if( m_Joystick && !m_UsingGamepad )
 	{
 		// Get input from left joystick
 		int RunX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
@@ -324,8 +324,19 @@ void CControls::OnRender()
 		int RunY = SDL_JoystickGetAxis(m_Gamepad, LEFT_JOYSTICK_Y);
 		if( m_UsingGamepad )
 		{
-			m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
-			m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
+			//m_InputDirectionLeft = (RunX < -GAMEPAD_DEAD_ZONE);
+			//m_InputDirectionRight = (RunX > GAMEPAD_DEAD_ZONE);
+			static int OldRunX = 0, OldRunY = 0;
+			if( RunX < -GAMEPAD_DEAD_ZONE && OldRunX >= -GAMEPAD_DEAD_ZONE )
+				m_InputDirectionLeft = 1;
+			if( RunX >= -GAMEPAD_DEAD_ZONE && OldRunX < -GAMEPAD_DEAD_ZONE )
+				m_InputDirectionLeft = 0;
+			if( RunX > GAMEPAD_DEAD_ZONE && OldRunX <= GAMEPAD_DEAD_ZONE )
+				m_InputDirectionRight = 1;
+			if( RunX <= GAMEPAD_DEAD_ZONE && OldRunX > GAMEPAD_DEAD_ZONE )
+				m_InputDirectionRight = 0;
+			OldRunX = RunX;
+			OldRunY = RunY;
 		}
 
 		// Get input from right joystick
@@ -337,7 +348,8 @@ void CControls::OnRender()
 			ClampMousePos();
 		}
 
-		if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE || abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE) )
+		if( !m_UsingGamepad && (abs(AimX) > GAMEPAD_DEAD_ZONE || abs(AimY) > GAMEPAD_DEAD_ZONE ||
+			abs(RunX) > GAMEPAD_DEAD_ZONE || abs(RunY) > GAMEPAD_DEAD_ZONE) || SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT) )
 		{
 			UI()->AndroidShowScreenKeys(false);
 			m_UsingGamepad = true;
