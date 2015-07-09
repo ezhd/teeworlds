@@ -102,6 +102,7 @@ void CChat::OnConsoleInit()
 static char *ListOfRemoteCommands = NULL;
 static void PrintRemoteCommands(const char *Cmd, void *Data)
 {
+	dbg_msg("Chat", "Remote cmd %s", Cmd);
 	CChat *Chat = (CChat *)Data;
 	char *Str = (char *)mem_alloc(str_length(ListOfRemoteCommands) + str_length(Cmd) + 10, 1);
 	str_copy(Str, ListOfRemoteCommands, str_length(ListOfRemoteCommands));
@@ -123,12 +124,11 @@ bool CChat::OnInput(IInput::CEvent Event)
 	}
 	else if(Event.m_Flags&IInput::FLAG_PRESS && (Event.m_Key == KEY_RETURN || Event.m_Key == KEY_KP_ENTER))
 	{
-		dbg_msg("Chat", "'%s'", m_Input.GetString());
 		if(m_Input.GetString()[0] == '!')
 		{
 			if(m_pClient->Client()->RconAuthed())
 			{
-				if(str_comp(m_Input.GetString(), "!help"))
+				if(str_comp(m_Input.GetString(), "!help") == 0)
 				{
 					ListOfRemoteCommands = (char *)mem_alloc(10, 1);
 					str_copy(ListOfRemoteCommands, "", 2);
@@ -144,7 +144,6 @@ bool CChat::OnInput(IInput::CEvent Event)
 				int idx = 1;
 				if(str_comp_num(m_Input.GetString(), "!password ", str_length("!password ")) == 0)
 					idx = str_length("!password ");
-				//dbg_msg("Chat", "RconAuth '%s'", m_Input.GetString() + idx);
 				m_pClient->Client()->RconAuth("", m_Input.GetString() + idx);
 			}
 			m_Input.Set("");
