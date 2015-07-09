@@ -14,6 +14,7 @@
 
 #include <game/client/components/scoreboard.h>
 #include <game/client/components/sounds.h>
+#include <game/client/components/console.h>
 #include <game/localization.h>
 
 #include "chat.h"
@@ -98,6 +99,18 @@ void CChat::OnConsoleInit()
 	Console()->Register("+show_chat", "", CFGFLAG_CLIENT, ConShowChat, this, "Show chat");
 }
 
+static char *ListOfRemoteCommands = NULL;
+static void PrintRemoteCommands(const char *Cmd, void *Data)
+{
+	CChat *Chat = (CChat *)Data;
+	char *Str = (char *)mem_alloc(str_length(ListOfRemoteCommands) + str_length(Cmd) + 10, 1);
+	str_copy(Str, ListOfRemoteCommands, str_length(ListOfRemoteCommands));
+	Str[str_length(ListOfRemoteCommands)] = ' ';
+	str_copy(Str + str_length(ListOfRemoteCommands) + 1, Cmd, str_length(Cmd) + 1);
+	mem_free(ListOfRemoteCommands);
+	ListOfRemoteCommands = Str;
+}
+
 bool CChat::OnInput(IInput::CEvent Event)
 {
 	if(m_Mode == MODE_NONE)
@@ -110,6 +123,33 @@ bool CChat::OnInput(IInput::CEvent Event)
 	}
 	else if(Event.m_Flags&IInput::FLAG_PRESS && (Event.m_Key == KEY_RETURN || Event.m_Key == KEY_KP_ENTER))
 	{
+		dbg_msg("Chat", "'%s'", m_Input.GetString());
+		if(m_Input.GetString()[0] == '!')
+		{
+			if(m_pClient->Client()->RconAuthed())
+			{
+				if(str_comp(m_Input.GetString(), "!help"))
+				{
+					ListOfRemoteCommands = (char *)mem_alloc(10, 1);
+					str_copy(ListOfRemoteCommands, "", 2);
+					m_pClient->Console()->PossibleCommands("", CFGFLAG_SERVER, true, PrintRemoteCommands, this);
+					AddLine(-1, 0, ListOfRemoteCommands);
+					mem_free(ListOfRemoteCommands);
+				}
+				else
+					m_pClient->Client()->Rcon(m_Input.GetString() + 1);
+			}
+			else
+			{
+				int idx = 1;
+				if(str_comp_num(m_Input.GetString(), "!password ", str_length("!password ")) == 0)
+					idx = str_length("!password ");
+				//dbg_msg("Chat", "RconAuth '%s'", m_Input.GetString() + idx);
+				m_pClient->Client()->RconAuth("", m_Input.GetString() + idx);
+			}
+			m_Input.Set("");
+		}
+
 		if(m_Input.GetString()[0])
 		{
 			bool AddEntry = false;
@@ -404,7 +444,7 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 		// Those wankers cannot even use std::string, stupid bums, so now I have to endure their half-assed string functions and memory management
 		char *msg = (char *)mem_alloc(1, 1);
 		msg[0] = 0;
-		for (int count = 0, line = m_CurrentLine; count < 5; count++, line = (line-1+MAX_LINES)%MAX_LINES)
+		for (int count = 0, line = m_CurrentLine; count < 4; count++, line = (line-1+MAX_LINES)%MAX_LINES)
 		{
 			if (!m_aLines[line].m_aText[0] || !m_aLines[line].m_aName[0])
 				continue;
@@ -416,6 +456,13 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 			mem_free(msg);
 			msg = msg1;
 		}
+
+		static const char *RconHelp = "Server commands: !password, !command, or !help\n";
+		char *msg1 = (char *)mem_alloc(str_length(RconHelp) + str_length(msg) + 10, 1);
+		str_copy(msg1, RconHelp, str_length(RconHelp) + 1);
+		str_copy(msg1 + str_length(msg1), msg, str_length(msg) + 1);
+		mem_free(msg);
+		msg = msg1;
 
 		UI()->AndroidTextInputHintMessage(msg);
 		mem_free(msg);
