@@ -314,7 +314,7 @@ void CHud::RenderVoting()
 	if(!m_pClient->m_pVoting->IsVoting() || Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		return;
 
-	static const float TextX = 265;
+	static const float TextX = 130;
 	static const float TextY = 1;
 	static const float TextW = 200;
 	static const float TextH = 42;
@@ -324,8 +324,8 @@ void CHud::RenderVoting()
 	Graphics()->SetColor(0,0,0,0.40f);
 	RenderTools()->DrawRoundRect(TextX-5, TextY, TextW+15, TextH, 5.0f);
 #if defined(__ANDROID__)
-	RenderTools()->DrawRoundRect(TextX-5, TextY+TextH+2, TextW/2-10, 20, 5.0f);
-	RenderTools()->DrawRoundRect(TextX+TextW/2+20, TextY+TextH+2, TextW/2-10, 20, 5.0f);
+	RenderTools()->DrawRoundRect(TextX-5, TextY+TextH+2, TextW/2-10, 30, 5.0f);
+	RenderTools()->DrawRoundRect(TextX+TextW/2+20, TextY+TextH+2, TextW/2-10, 30, 5.0f);
 #endif
 	Graphics()->QuadsEnd();
 
@@ -362,16 +362,16 @@ void CHud::RenderVoting()
 	str_format(aBuf, sizeof(aBuf), "%s - %s", Localize("Vote no"), pNoKey);
 	UI()->DoLabel(&Base, aBuf, 6.0f, 1);
 #else
-	Base.y += Base.h+6;
+	Base.y += Base.h+15;
 	UI()->DoLabel(&Base, Localize("Vote yes"), 16.0f, -1);
 	UI()->DoLabel(&Base, Localize("Vote no"), 16.0f, 1);
 	if( Input()->KeyDown(KEY_MOUSE_1) )
 	{
 		float mx, my;
 		Input()->MouseRelative(&mx, &my);
-		mx *= m_Width / Graphics()->ScreenWidth();
-		my *= m_Height / Graphics()->ScreenHeight();
-		if( my > TextY+TextH-40 && my < TextY+TextH+20 ) {
+		mx = mx * m_Width / Graphics()->ScreenWidth();
+		my = my * m_Height / Graphics()->ScreenHeight();
+		if( my > TextY+TextH-10 && my < TextY+TextH+30 ) {
 			if( mx > TextX-5 && mx < TextX-5+TextW/2-10 )
 				m_pClient->m_pVoting->Vote(1);
 			if( mx > TextX+TextW/2+20 && mx < TextX+TextW/2+20+TextW/2-10 )
