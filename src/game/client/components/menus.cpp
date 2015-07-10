@@ -597,7 +597,7 @@ int CMenus::RenderMenubar(CUIRect r)
 		static int s_ServerButton=0;
 		if(DoButton_MenuTab(&s_ServerButton, Localize("Server"), m_ActivePage==PAGE_SERVER, &Button, CUI::CORNER_T))
 		{
-			//ServerMenu_Init();
+			ServerCreatorInit();
 			NewPage = PAGE_SERVER;
 			m_DoubleClickIndex = -1;
 		}
@@ -873,6 +873,8 @@ int CMenus::Render()
 			RenderServerbrowser(MainView);
 		else if(g_Config.m_UiPage == PAGE_DEMOS)
 			RenderDemoList(MainView);
+		else if(g_Config.m_UiPage == PAGE_SERVER)
+			ServerCreatorProcess(MainView);
 		else if(g_Config.m_UiPage == PAGE_FAVORITES)
 			RenderServerbrowser(MainView);
 		else if(g_Config.m_UiPage == PAGE_SETTINGS)
