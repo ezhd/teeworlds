@@ -19,6 +19,8 @@
 
 #include "chat.h"
 
+#include <string.h>
+
 
 CChat::CChat()
 {
@@ -102,14 +104,18 @@ void CChat::OnConsoleInit()
 static char *ListOfRemoteCommands = NULL;
 static void PrintRemoteCommands(const char *Cmd, void *Data)
 {
-	dbg_msg("Chat", "Remote cmd %s", Cmd);
 	CChat *Chat = (CChat *)Data;
-	char *Str = (char *)mem_alloc(str_length(ListOfRemoteCommands) + str_length(Cmd) + 10, 1);
-	str_copy(Str, ListOfRemoteCommands, str_length(ListOfRemoteCommands));
-	Str[str_length(ListOfRemoteCommands)] = ' ';
-	str_copy(Str + str_length(ListOfRemoteCommands) + 1, Cmd, str_length(Cmd) + 1);
+	char *Str = (char *)mem_alloc(strlen(ListOfRemoteCommands) + strlen(Cmd) + 10, 1);
+	strcpy(Str, ListOfRemoteCommands); // Screw those str_copy ugliness, use stdlib functions
+	strcat(Str, " ");
+	strcat(Str, Cmd);
 	mem_free(ListOfRemoteCommands);
 	ListOfRemoteCommands = Str;
+	if (strlen(ListOfRemoteCommands) >= 100)
+	{
+		Chat->AddLine(-1, 0, ListOfRemoteCommands);
+		strcpy(ListOfRemoteCommands, "");
+	}
 }
 
 bool CChat::OnInput(IInput::CEvent Event)
@@ -128,12 +134,14 @@ bool CChat::OnInput(IInput::CEvent Event)
 		{
 			if(m_pClient->Client()->RconAuthed())
 			{
-				if(str_comp(m_Input.GetString(), "!help") == 0)
+				if(str_comp_num(m_Input.GetString(), "!help", str_length("!help")) == 0)
 				{
 					ListOfRemoteCommands = (char *)mem_alloc(10, 1);
-					str_copy(ListOfRemoteCommands, "", 2);
-					m_pClient->Console()->PossibleCommands("", CFGFLAG_SERVER, true, PrintRemoteCommands, this);
-					AddLine(-1, 0, ListOfRemoteCommands);
+					strcpy(ListOfRemoteCommands, "");
+					m_pClient->Console()->PossibleCommands(str_length(m_Input.GetString()) > str_length("!help") + 1 ? m_Input.GetString() + str_length("!help") + 1 : "",
+															CFGFLAG_SERVER, true, PrintRemoteCommands, this);
+					if (ListOfRemoteCommands[0])
+						AddLine(-1, 0, ListOfRemoteCommands);
 					mem_free(ListOfRemoteCommands);
 				}
 				else
@@ -456,9 +464,13 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 			msg = msg1;
 		}
 
-		static const char *RconHelp = "Server commands: !password, !command, or !help\n";
+		static const char *RconHelp = "For server console, type !password ServerPassword or !ServerPassword\n";
+		static const char *RconHelpAuthed = "Type server command: !command, !help, or !help part-of-command\n";
 		char *msg1 = (char *)mem_alloc(str_length(RconHelp) + str_length(msg) + 10, 1);
-		str_copy(msg1, RconHelp, str_length(RconHelp) + 1);
+		if(m_pClient->Client()->RconAuthed())
+			str_copy(msg1, RconHelpAuthed, str_length(RconHelpAuthed) + 1);
+		else
+			str_copy(msg1, RconHelp, str_length(RconHelp) + 1);
 		str_copy(msg1 + str_length(msg1), msg, str_length(msg) + 1);
 		mem_free(msg);
 		msg = msg1;
