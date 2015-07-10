@@ -148,6 +148,7 @@ protected:
 	typedef CBan<CNetRange> CBanRange;
 	
 	template<class T> void MakeBanInfo(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type) const;
+	template<class T> void MakeBanInfo2(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type) const;
 	template<class T> int Ban(T *pBanPool, const typename T::CDataType *pData, int Seconds, const char *pReason);
 	template<class T> int Unban(T *pBanPool, const typename T::CDataType *pData);
 
@@ -189,5 +190,8 @@ public:
 	static void ConBans(class IConsole::IResult *pResult, void *pUser);
 	static void ConBansSave(class IConsole::IResult *pResult, void *pUser);
 };
+
+template<> void CNetBan::MakeBanInfo<NETADDR>(CNetBan::CBan<NETADDR> const*, char*, unsigned int, int) const;
+template<> void CNetBan::MakeBanInfo<CNetRange>(CNetBan::CBan<CNetRange> const*, char*, unsigned int, int) const;
 
 #endif

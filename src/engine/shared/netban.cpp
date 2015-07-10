@@ -241,7 +241,7 @@ typename CNetBan::CBan<T> *CNetBan::CBanPool<T, HashCount>::Get(int Index) const
 
 
 template<class T>
-void CNetBan::MakeBanInfo(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type) const
+void CNetBan::MakeBanInfo2(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, int Type) const
 {
 	if(pBan == 0 || pBuf == 0)
 	{
@@ -281,6 +281,16 @@ void CNetBan::MakeBanInfo(const CBan<T> *pBan, char *pBuf, unsigned BuffSize, in
 	}
 	else
 		str_format(pBuf, BuffSize, "%s for life (%s)", aBuf, pBan->m_Info.m_aReason);
+}
+
+template<> void CNetBan::MakeBanInfo<NETADDR>(CNetBan::CBan<NETADDR> const* pBan, char* pBuf, unsigned int BuffSize, int Type) const
+{
+	return MakeBanInfo2(pBan, pBuf, BuffSize, Type);
+}
+
+template<> void CNetBan::MakeBanInfo<CNetRange>(CNetBan::CBan<CNetRange> const* pBan, char* pBuf, unsigned int BuffSize, int Type) const
+{
+	return MakeBanInfo2(pBan, pBuf, BuffSize, Type);
 }
 
 template<class T>
