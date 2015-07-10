@@ -26,15 +26,11 @@ void CMenus::ServerCreatorInit()
 
 void CMenus::ServerCreatorProcess(CUIRect MainView)
 {
-	CUIRect ServerList, ToolBox, StatusBox, TabBar;
-
 	// background
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_ALL, 10.0f);
 	MainView.Margin(10.0f, &MainView);
 
-	// create server list, status box, tab bar and tool box area
-	MainView.VSplitRight(205.0f, &ServerList, &ToolBox);
-	ServerList.HSplitBottom(70.0f, &ServerList, &StatusBox);
-	StatusBox.VSplitRight(100.0f, &StatusBox, &TabBar);
-	ServerList.VSplitRight(5.0f, &ServerList, 0);
+	MainView.HSplitTop(30.0f, 0, &MainView);
+	CUIRect MsgBox = MainView;
+	UI()->DoLabelScaled(&MsgBox, Localize("Under construction"), 16.0f, 0);
 }
