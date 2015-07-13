@@ -9,6 +9,11 @@
 
 class CControls : public CComponent
 {
+	void TouchscreenInputTwoJoysticks(int64 CurTime, bool *FireWasPressed);
+	void TouchscreenInputThreeJoysticks(int64 CurTime, bool *FireWasPressed);
+	void TouchscreenInputGyroscope(int64 CurTime, bool *FireWasPressed);
+	void TouchscreenInputDDRace(int64 CurTime, bool *FireWasPressed);
+
 public:
 	vec2 m_MousePos;
 	vec2 m_TargetPos;

@@ -14,6 +14,9 @@ MACRO_CONFIG_INT(ClNameplatesSize, cl_nameplates_size, 50, 0, 100, CFGFLAG_CLIEN
 MACRO_CONFIG_INT(ClAutoswitchWeapons, cl_autoswitch_weapons, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Auto switch weapon on pickup")
 MACRO_CONFIG_INT(ClAutoswitchWeaponsOutOfAmmo, cl_autoswitch_weapons_out_of_ammo, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Auto switch weapon when out of ammo")
 
+MACRO_CONFIG_INT(ClTouchscreenMode, cl_touchscreen_mode, TOUCHSCREEN_TWO_JOYSTICKS, TOUCHSCREEN_TWO_JOYSTICKS, TOUCHSCREEN_DDRACE, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Touchscreen controls preset")
+MACRO_CONFIG_INT(ClGyroscopeSensitivity, cl_gyroscope_sensitivity, 50, 0, 100, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Gyroscope sensitivity")
+
 MACRO_CONFIG_INT(ClShowhud, cl_showhud, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ingame HUD")
 MACRO_CONFIG_INT(ClShowChatFriends, cl_show_chat_friends, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show only chat messages from friends")
 MACRO_CONFIG_INT(ClShowfps, cl_showfps, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ingame FPS counter")

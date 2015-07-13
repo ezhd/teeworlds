@@ -53,7 +53,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 {
 	char aBuf[128];
 	CUIRect Label, Button, Left, Right, Game, Client;
-	MainView.HSplitTop(230.0f, &Game, &Client);
+	MainView.HSplitTop(300.0f, &Game, &Client);
 
 	// game
 	{
@@ -108,6 +108,37 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		if(DoButton_CheckBox(&g_Config.m_ClShowChatFriends, Localize("Show only chat messages from friends"), g_Config.m_ClShowChatFriends, &Button))
 			g_Config.m_ClShowChatFriends ^= 1;
 
+
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Label, &Left);
+		UI()->DoLabelScaled(&Label, Localize("Touchscreen controls preset"), 13.0f, -1);
+
+		int TouchscreenTwoJoysticks = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_TWO_JOYSTICKS;
+		int TouchscreenThreeJoysticks = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_THREE_JOYSTICKS;
+		int TouchscreenGyroscope = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_GYROSCOPE;
+		int TouchscreenDDRace = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_DDRACE;
+
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&TouchscreenTwoJoysticks, Localize("Two joysticks, separate Fire and Hook buttons"), TouchscreenTwoJoysticks, &Button))
+			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_TWO_JOYSTICKS;
+
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&TouchscreenThreeJoysticks, Localize("Three joysticks, Fire and Hook activated by joysticks"), TouchscreenThreeJoysticks, &Button))
+			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_THREE_JOYSTICKS;
+
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&TouchscreenGyroscope, Localize("One joystick + gyroscope, separate Fire and Hook buttons"), TouchscreenGyroscope, &Button))
+			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_GYROSCOPE;
+
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&TouchscreenDDRace, Localize("Two joysticks DDRace, Hook activated by joystick, separate Fire button"), TouchscreenDDRace, &Button))
+			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_DDRACE;
+
+
 		// name plates
 		Right.HSplitTop(20.0f, &Button, &Right);
 		if(DoButton_CheckBox(&g_Config.m_ClNameplates, Localize("Show name plates"), g_Config.m_ClNameplates, &Button))
@@ -132,6 +163,17 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 			Right.HSplitTop(20.0f, &Button, &Right);
 			if(DoButton_CheckBox(&g_Config.m_ClNameplatesTeamcolors, Localize("Use team colors for name plates"), g_Config.m_ClNameplatesTeamcolors, &Button))
 				g_Config.m_ClNameplatesTeamcolors ^= 1;
+		}
+
+		if(TouchscreenGyroscope)
+		{
+			Right.HSplitTop(10.0f, 0, &Right);
+			Right.HSplitTop(20.0f, &Label, &Right);
+			Right.HSplitTop(20.0f, &Button, &Right);
+			Label.VSplitLeft(20.0f, 0, &Label);
+			UI()->DoLabelScaled(&Label, Localize("Gyroscope sensitivity"), 13.0f, -1);
+			Button.HMargin(2.0f, &Button);
+			g_Config.m_ClGyroscopeSensitivity = static_cast<int>(DoScrollbarH(&g_Config.m_ClGyroscopeSensitivity, &Button, g_Config.m_ClGyroscopeSensitivity/100.0f)*100.0f+0.1f);
 		}
 	}
 
