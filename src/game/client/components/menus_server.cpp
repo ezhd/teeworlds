@@ -34,7 +34,7 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 {
 	// background
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_ALL, 20.0f);
-	MainView.Margin(10.0f, &MainView);
+	MainView.Margin(20.0f, &MainView);
 
 	MainView.HSplitTop(10, 0, &MainView);
 	CUIRect MsgBox = MainView;
@@ -42,15 +42,17 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 
 	static int64 LastUpdateTime = 0;
 	static bool ServerRunning = false;
+	static bool ServerStarting = false;
 	if (time_get() / time_freq() > LastUpdateTime + 3)
 	{
 		LastUpdateTime = time_get() / time_freq();
 		ServerRunning = WEXITSTATUS(system("$SECURE_STORAGE_DIR/busybox sh -c 'ps | grep teeworlds_srv'")) == 0;
+		ServerStarting = false;
 	}
 
 	MainView.HSplitTop(30, 0, &MainView);
 	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, ServerRunning ? Localize("Server is running") : Localize("Server is stopped"), 20.0f, 0);
+	UI()->DoLabelScaled(&MsgBox, ServerStarting ? Localize("Server is starting") : ServerRunning ? Localize("Server is running") : Localize("Server stopped"), 20.0f, 0);
 
 	MainView.HSplitTop(30, 0, &MainView);
 
@@ -62,9 +64,9 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int s_StartServerButton = 0;
 	if(DoButton_Menu(&s_StartServerButton, Localize("Start server"), 0, &Button))
 	{
-		//system("logwrapper $SECURE_STORAGE_DIR/busybox sh -c \"$SECURE_STORAGE_DIR/teeworlds_srv -f $UNSECURE_STORAGE_DIR/server-config.txt &\"");
-		system("$SECURE_STORAGE_DIR/teeworlds_srv -f $UNSECURE_STORAGE_DIR/server-config.txt &");
-		LastUpdateTime = 0;
+		system("$SECURE_STORAGE_DIR/teeworlds_srv -f $UNSECURE_STORAGE_DIR/server-config.txt >/dev/null 2>&1 &");
+		LastUpdateTime = time_get() / time_freq(); // We do not actually ping the server, just wait 3 seconds
+		ServerStarting = true;
 	}
 
 	MainView.VSplitRight(350, 0, &Button);
@@ -88,28 +90,85 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 		system("am start --user -3 -a android.intent.action.VIEW -t 'text/*' -d file://$UNSECURE_STORAGE_DIR/server-config.txt");
 	}
 
-	MainView.VSplitRight(350, 0, &Button);
-	Button.h = 50;
-	Button.w = 300;
-	static int s_JoinServerButton = 0;
-	if(DoButton_Menu(&s_JoinServerButton, Localize("Join server"), 0, &Button))
+	if(ServerRunning)
 	{
-		strcpy(g_Config.m_UiServerAddress, "127.0.0.1");
-		Client()->Connect(g_Config.m_UiServerAddress);
+		MainView.VSplitRight(350, 0, &Button);
+		Button.h = 50;
+		Button.w = 300;
+		static int s_JoinServerButton = 0;
+		if(DoButton_Menu(&s_JoinServerButton, Localize("Join server"), 0, &Button))
+		{
+			strcpy(g_Config.m_UiServerAddress, "127.0.0.1");
+			Client()->Connect(g_Config.m_UiServerAddress);
+		}
 	}
 
 	MainView.HSplitTop(60, 0, &MainView);
 	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, Localize("If you don't have Wi-Fi connection, go to Android Settings,"), 20.0f, 0);
+	if(ServerRunning && false)
+	{
+		UI()->DoLabelScaled(&MsgBox, Localize("Add bots to server"), 20.0f, 0);
+	}
+
+	MainView.HSplitTop(30, 0, &MainView);
+
+	if(ServerRunning && false) // Not implemented yet
+	{
+		MainView.VSplitLeft(50, 0, &Button);
+		Button.h = 50;
+		Button.w = 100;
+		static int s_AddBot1 = 0;
+		if(DoButton_Menu(&s_AddBot1, Localize("Harmless"), 0, &Button))
+		{
+			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 1 >/dev/null 2>&1 &");
+		}
+
+		MainView.VSplitLeft(225, 0, &Button);
+		Button.h = 50;
+		Button.w = 100;
+		static int s_AddBot2 = 0;
+		if(DoButton_Menu(&s_AddBot2, Localize("Feeble"), 0, &Button))
+		{
+			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 2 >/dev/null 2>&1 &");
+		}
+
+		MainView.VSplitLeft(400, 0, &Button);
+		Button.h = 50;
+		Button.w = 100;
+		static int s_AddBot3 = 0;
+		if(DoButton_Menu(&s_AddBot3, Localize("Brawler"), 0, &Button))
+		{
+			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 3 >/dev/null 2>&1 &");
+		}
+
+		MainView.VSplitLeft(575, 0, &Button);
+		Button.h = 50;
+		Button.w = 100;
+		static int s_AddBot4 = 0;
+		if(DoButton_Menu(&s_AddBot4, Localize("Murderer"), 0, &Button))
+		{
+			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 4 >/dev/null 2>&1 &");
+		}
+
+		MainView.VSplitLeft(750, 0, &Button);
+		Button.h = 50;
+		Button.w = 100;
+		static int s_AddBot5 = 0;
+		if(DoButton_Menu(&s_AddBot5, Localize("Mr. Death"), 0, &Button))
+		{
+			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 5 >/dev/null 2>&1 &");
+		}
+	}
+
+	MainView.HSplitTop(60, 0, &MainView);
+	MsgBox = MainView;
+	UI()->DoLabelScaled(&MsgBox, Localize("If you don't have Wi-Fi connection, go to Android Settings, and enable Wi-Fi hotspot"), 20.0f, 0);
 	MainView.HSplitTop(30, 0, &MainView);
 	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, Localize("and in Tethering & Hotspot menu enable Wi-Fi hotspot,"), 20.0f, 0);
+	UI()->DoLabelScaled(&MsgBox, Localize("in Tethering & Hotspot menu, then ask other players to connect to your Wi-Fi network,"), 20.0f, 0);
 	MainView.HSplitTop(30, 0, &MainView);
 	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, Localize("then ask other players to connect to Wi-Fi network you created,"), 20.0f, 0);
-	MainView.HSplitTop(30, 0, &MainView);
-	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, Localize("open TeeWorlds, and connect to your server from LAN menu."), 20.0f, 0);
+	UI()->DoLabelScaled(&MsgBox, Localize("open TeeWorlds, select LAN menu, and connect to your server."), 20.0f, 0);
 
 	MainView.HSplitTop(30, 0, &MainView);
 	MainView.VMargin(50.0f, &Button);
@@ -121,5 +180,4 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 		system("am start --user -3 -a android.intent.action.SEND -t application/vnd.android.package-archive "
 				"--eu android.intent.extra.STREAM file://$UNSECURE_STORAGE_DIR/Teeworlds.apk");
 	}
-
 }
