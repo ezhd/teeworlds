@@ -34,6 +34,10 @@ CUI::CUI()
 	m_Screen.y = 0;
 	m_Screen.w = 848.0f;
 	m_Screen.h = 480.0f;
+
+#if defined(__ANDROID__)
+	m_Gyroscope = NULL;
+#endif
 }
 
 int CUI::Update(float Mx, float My, float Mwx, float Mwy, int Buttons)
@@ -197,11 +201,10 @@ static void AndroidScreenKeysGyroscope(SDL_Rect Buttons[], int ScreenW, int Scre
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
 		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w;
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
-		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h;
+		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h * 2;
 	// Fire button to the left of the hook button
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].w;
+		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].w * 2;
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].y =
 		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h;
 	// Weapnext button above hook button
@@ -320,12 +323,10 @@ void CUI::AndroidShowScreenKeys(bool shown)
 
 	if( g_Config.m_ClTouchscreenMode == TOUCHSCREEN_GYROSCOPE )
 	{
-		static SDL_Joystick * gyro = NULL;
-		
-		if( shown && !gyro )
-			gyro = SDL_JoystickOpen(1);
-		else if( !shown && gyro )
-			SDL_JoystickClose(gyro), gyro = NULL;
+		if( shown && !m_Gyroscope )
+			m_Gyroscope = SDL_JoystickOpen(1);
+		else if( !shown && m_Gyroscope )
+			SDL_JoystickClose(m_Gyroscope), m_Gyroscope = NULL;
 	}
 #endif
 }

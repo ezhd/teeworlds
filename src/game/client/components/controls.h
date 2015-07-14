@@ -23,6 +23,7 @@ public:
 	bool m_JoystickFirePressed;
 	bool m_JoystickRunPressed;
 	int64 m_JoystickTapTime;
+	float m_GyroscopeCenter;
 
 	SDL_Joystick *m_Gamepad;
 	bool m_UsingGamepad;

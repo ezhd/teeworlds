@@ -12,12 +12,14 @@
 #include <game/client/components/chat.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/scoreboard.h>
+#include <engine/graphics.h>
 
 #include "controls.h"
 
 enum {	LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1,
 		RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3,
 		SECOND_RIGHT_JOYSTICK_X = 20, SECOND_RIGHT_JOYSTICK_Y = 21,
+		ORIENTATION_X = 8, ORIENTATION_Y = 9, ORIENTATION_Z = 10,
 		NUM_JOYSTICK_AXES = 22 };
 
 CControls::CControls()
@@ -61,6 +63,7 @@ void CControls::OnReset()
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
+	m_GyroscopeCenter = 0.0f;
 }
 
 void CControls::OnRelease()
@@ -385,9 +388,7 @@ void CControls::TouchscreenInputTwoJoysticks(int64 CurTime, bool *FireWasPressed
 	if( m_JoystickRunPressed != RunPressed )
 	{
 		if( RunPressed && RunY < 0 )
-		{
 			m_InputData.m_Jump = 1;
-		}
 		else
 			m_InputData.m_Jump = 0;
 		m_JoystickTapTime = CurTime;
@@ -433,9 +434,7 @@ void CControls::TouchscreenInputThreeJoysticks(int64 CurTime, bool *FireWasPress
 	if( m_JoystickRunPressed != RunPressed )
 	{
 		if( RunPressed && RunY < 0 )
-		{
 			m_InputData.m_Jump = 1;
-		}
 		else
 			m_InputData.m_Jump = 0;
 		m_JoystickTapTime = CurTime;
@@ -490,8 +489,82 @@ void CControls::TouchscreenInputThreeJoysticks(int64 CurTime, bool *FireWasPress
 
 void CControls::TouchscreenInputGyroscope(int64 CurTime, bool *FireWasPressed)
 {
-	float x, y, z;
-	Input()->ReadGyroscopeInput(&x, &y, &z);
+	/*
+	int X = 0, Y = 0, Z = 0;
+	if( UI()->m_Gyroscope != NULL )
+	{
+		X = SDL_JoystickGetAxis(UI()->m_Gyroscope, ORIENTATION_X);
+		Y = SDL_JoystickGetAxis(UI()->m_Gyroscope, ORIENTATION_Y);
+		Z = SDL_JoystickGetAxis(UI()->m_Gyroscope, ORIENTATION_Z);
+		dbg_msg("orientation", "%07d %07d %07d", X, Y, Z);
+	}
+	*/
+
+	float X, Y, Z;
+	Input()->ReadGyroscopeInput(&X, &Y, &Z);
+	//dbg_msg("gyro", "%f %f %f", X, Y, Z);
+
+	float OldGyroscope = m_GyroscopeCenter;
+	m_GyroscopeCenter += Z * g_Config.m_ClGyroscopeSensitivity / 5.0f;
+	//m_GyroscopeCenter -= ( (m_GyroscopeCenter > 0) ? 1 : -1 ) * (CurTime - m_GyroscopeLastTime) * 0.5f / time_freq();
+
+	if( m_GyroscopeCenter > 3.0f )
+		m_GyroscopeCenter = 3.0f;
+	if( m_GyroscopeCenter < -3.0f )
+		m_GyroscopeCenter = -3.0f;
+
+	if( m_GyroscopeCenter >= 1.0f && OldGyroscope < 1.0f )
+		m_InputDirectionLeft = 1;
+	if( m_GyroscopeCenter < 1.0f && OldGyroscope >= 1.0f )
+		m_InputDirectionLeft = 0;
+	if( m_GyroscopeCenter <= -1.0f && OldGyroscope > -1.0f )
+		m_InputDirectionRight = 1;
+	if( m_GyroscopeCenter > -1.0f && OldGyroscope <= -1.0f )
+		m_InputDirectionRight = 0;
+
+	// Get input from right joystick
+	int AimX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
+	bool AimPressed = (AimX != 0 || AimY != 0);
+
+	if( m_JoystickRunPressed != AimPressed )
+	{
+		if( AimPressed )
+			m_InputData.m_Jump = 1;
+		else
+			m_InputData.m_Jump = 0;
+		m_JoystickTapTime = CurTime;
+	}
+
+	m_JoystickRunPressed = AimPressed;
+
+	if( AimPressed )
+	{
+		m_MousePos = vec2(AimX / 30, AimY / 30);
+		ClampMousePos();
+	}
+
+	// Draw gyro meter
+	/*
+	float meterX = Graphics()->ScreenWidth() / 2.0f;;
+	float meterY = Graphics()->ScreenHeight() * 0.90f;
+	float meterH = Graphics()->ScreenHeight() * 0.01f;
+	float meterW = Graphics()->ScreenHeight() * 0.03f;
+	float meterValue = m_GyroscopeCenter;
+	if (meterValue > 1.0f)
+		meterValue = 1.0f;
+	if (meterValue < -1.0f)
+		meterValue = -1.0f;
+	Graphics()->LinesBegin();
+	Graphics()->SetColor(0.00f, 0.50f, 1.00f, 1.00f);
+	IGraphics::CLineItem Array[] = {
+		IGraphics::CLineItem(meterX - meterW, meterY - meterH, meterX - meterW, meterY + meterH),
+		IGraphics::CLineItem(meterX + meterW, meterY - meterH, meterX + meterW, meterY + meterH),
+		IGraphics::CLineItem(meterX, meterY, meterX + meterW * m_GyroscopeCenter, meterY),
+	};
+	Graphics()->LinesDraw(Array, 3);
+	Graphics()->LinesEnd();
+	*/
 }
 
 void CControls::TouchscreenInputDDRace(int64 CurTime, bool *FireWasPressed)
@@ -508,9 +581,7 @@ void CControls::TouchscreenInputDDRace(int64 CurTime, bool *FireWasPressed)
 	if( m_JoystickRunPressed != RunPressed )
 	{
 		if( RunPressed && RunY < 0 )
-		{
 			m_InputData.m_Jump = 1;
-		}
 		else
 			m_InputData.m_Jump = 0;
 		m_JoystickTapTime = CurTime;
