@@ -235,6 +235,7 @@ function build(settings)
 	engine = Compile(engine_settings, Collect("src/engine/shared/*.cpp", "src/base/*.c"))
 	client = Compile(client_settings, Collect("src/engine/client/*.cpp"))
 	server = Compile(server_settings, Collect("src/engine/server/*.cpp"))
+	console_client = Compile(settings, Collect("src/engine/console-client/*.cpp"))
 
 	versionserver = Compile(settings, Collect("src/versionsrv/*.cpp"))
 	masterserver = Compile(settings, Collect("src/mastersrv/*.cpp"))
@@ -264,6 +265,10 @@ function build(settings)
 		engine, client, game_editor, zlib, pnglite, wavpack,
 		client_link_other, client_osxlaunch)
 
+	console_client_exe = Link(settings, "teeworlds-console", game_shared, game_client,
+		engine, console_client, game_editor, zlib, pnglite, wavpack,
+		client_link_other, client_osxlaunch)
+
 	server_exe = Link(server_settings, "teeworlds_srv", engine, server,
 		game_shared, game_server, zlib, server_link_other)
 
@@ -282,12 +287,13 @@ function build(settings)
 	c = PseudoTarget("client".."_"..settings.config_name, client_exe, client_depends)
 	s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch)
 	g = PseudoTarget("game".."_"..settings.config_name, client_exe, server_exe)
+	o = PseudoTarget("console".."_"..settings.config_name, console_client_exe, client_depends)
 
 	v = PseudoTarget("versionserver".."_"..settings.config_name, versionserver_exe)
 	m = PseudoTarget("masterserver".."_"..settings.config_name, masterserver_exe)
 	t = PseudoTarget("tools".."_"..settings.config_name, tools)
 
-	all = PseudoTarget(settings.config_name, c, s, v, m, t)
+	all = PseudoTarget(settings.config_name, c, s, o, v, m, t)
 	return all
 end
 
