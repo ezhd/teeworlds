@@ -2,10 +2,11 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #ifndef GAME_CLIENT_COMPONENTS_CONTROLS_H
 #define GAME_CLIENT_COMPONENTS_CONTROLS_H
-#include <SDL_joystick.h>
 #include <base/vmath.h>
 #include <base/system.h>
 #include <game/client/component.h>
+
+struct SDL_Joystick;
 
 class CControls : public CComponent
 {

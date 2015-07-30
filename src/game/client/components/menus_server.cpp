@@ -21,7 +21,7 @@
 #include "menus.h"
 
 #include <stdlib.h>
-#include <SDL/SDL_android.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -46,7 +46,8 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	if (time_get() / time_freq() > LastUpdateTime + 3)
 	{
 		LastUpdateTime = time_get() / time_freq();
-		ServerRunning = WEXITSTATUS(system("$SECURE_STORAGE_DIR/busybox sh -c 'ps | grep teeworlds_srv'")) == 0;
+		int status = system("$SECURE_STORAGE_DIR/busybox sh -c 'ps | grep teeworlds_srv'");
+		ServerRunning = WEXITSTATUS(status) == 0;
 		ServerStarting = false;
 	}
 

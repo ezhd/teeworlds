@@ -1,6 +1,9 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+
+#if defined(__ANDROID__)
 #include <SDL.h>
+#endif
 
 #include <base/math.h>
 
@@ -26,6 +29,7 @@ CControls::CControls()
 {
 	mem_zero(&m_LastData, sizeof(m_LastData));
 
+#if defined(__ANDROID__)
 	SDL_Init(SDL_INIT_JOYSTICK);
 	m_Joystick = SDL_JoystickOpen(0);
 	if( m_Joystick && SDL_JoystickNumAxes(m_Joystick) < NUM_JOYSTICK_AXES )
@@ -41,6 +45,7 @@ CControls::CControls()
 	m_UsingGamepad = false;
 	if( getenv("OUYA") )
 		m_UsingGamepad = true;
+#endif
 }
 
 void CControls::OnReset()
@@ -235,6 +240,7 @@ int CControls::SnapInput(int *pData)
 
 void CControls::OnRender()
 {
+#if defined(__ANDROID__)
 	int64 CurTime = time_get();
 	bool FireWasPressed = false;
 
@@ -322,6 +328,7 @@ void CControls::OnRender()
 				m_InputData.m_WantedWeapon = w+1;
 		}
 	}
+#endif
 
 	// update target pos
 	if(m_pClient->m_Snap.m_pGameInfoObj && !m_pClient->m_Snap.m_SpecInfo.m_Active)
@@ -374,6 +381,7 @@ void CControls::ClampMousePos()
 	}
 }
 
+#if defined(__ANDROID__)
 void CControls::TouchscreenInputTwoJoysticks(int64 CurTime, bool *FireWasPressed)
 {
 	// Get input from left joystick
@@ -613,3 +621,4 @@ void CControls::TouchscreenInputDDRace(int64 CurTime, bool *FireWasPressed)
 		m_InputData.m_Hook = 0;
 	}
 }
+#endif

@@ -3,7 +3,9 @@
 #ifndef GAME_CLIENT_UI_H
 #define GAME_CLIENT_UI_H
 
+#if defined(__ANDROID__)
 #include <SDL.h>
+#endif
 
 class CUIRect
 {
