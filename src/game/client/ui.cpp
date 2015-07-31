@@ -420,7 +420,7 @@ void CUI::AndroidShowScreenKeys(bool shown)
 	for( int i = 0; i < SDL_ANDROID_SCREENKEYBOARD_BUTTON_NUM; i++ )
 		SDL_ANDROID_SetScreenKeyboardButtonPos( i, shown ? &Buttons[i] : &ButtonHidden );
 
-	if( g_Config.m_ClTouchscreenMode == TOUCHSCREEN_GYROSCOPE )
+	if( g_Config.m_ClTouchscreenMode == TOUCHSCREEN_GYROSCOPE || g_Config.m_ClTouchscreenMode == TOUCHSCREEN_PROXIMITY_SENSOR )
 	{
 		if( shown && !m_Gyroscope )
 			m_Gyroscope = SDL_JoystickOpen(1);

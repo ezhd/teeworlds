@@ -26,6 +26,7 @@ static bool proximityPressed = false;
 extern "C" JNIEXPORT void JNICALL Java_com_teeworlds_AccelerometerReader_nativeProximity(void *jnienv, void *jniobj, float value)
 {
 	proximityPressed = value < 0.99f;
+	//dbg_msg("Proximity", "Proximity value: %f pressed %d", value, proximityPressed);
 }
 #endif
 
