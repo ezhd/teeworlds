@@ -66,7 +66,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		Right.VMargin(5.0f, &Right);
 
 		// dynamic camera
-		Left.HSplitTop(20.0f, &Button, &Left);
+		Right.HSplitTop(20.0f, &Button, &Right);
 		static int s_DynamicCameraButton = 0;
 		if(DoButton_CheckBox(&s_DynamicCameraButton, Localize("Dynamic Camera"), g_Config.m_ClMouseDeadzone != 0, &Button))
 		{
@@ -85,7 +85,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		}
 
 		// weapon pickup
-		Left.HSplitTop(5.0f, 0, &Left);
+		//Left.HSplitTop(5.0f, 0, &Left);
 		Left.HSplitTop(20.0f, &Button, &Left);
 		if(DoButton_CheckBox(&g_Config.m_ClAutoswitchWeapons, Localize("Switch weapon on pickup"), g_Config.m_ClAutoswitchWeapons, &Button))
 			g_Config.m_ClAutoswitchWeapons ^= 1;
@@ -97,14 +97,14 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 			g_Config.m_ClAutoswitchWeaponsOutOfAmmo ^= 1;
 
 		// show hud
-		Left.HSplitTop(5.0f, 0, &Left);
-		Left.HSplitTop(20.0f, &Button, &Left);
+		Right.HSplitTop(5.0f, 0, &Right);
+		Right.HSplitTop(20.0f, &Button, &Right);
 		if(DoButton_CheckBox(&g_Config.m_ClShowhud, Localize("Show ingame HUD"), g_Config.m_ClShowhud, &Button))
 			g_Config.m_ClShowhud ^= 1;
 
 		// chat messages
-		Left.HSplitTop(5.0f, 0, &Left);
-		Left.HSplitTop(20.0f, &Button, &Left);
+		Right.HSplitTop(5.0f, 0, &Right);
+		Right.HSplitTop(20.0f, &Button, &Right);
 		if(DoButton_CheckBox(&g_Config.m_ClShowChatFriends, Localize("Show only chat messages from friends"), g_Config.m_ClShowChatFriends, &Button))
 			g_Config.m_ClShowChatFriends ^= 1;
 
@@ -117,6 +117,8 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		int TouchscreenThreeJoysticks = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_THREE_JOYSTICKS;
 		int TouchscreenGyroscope = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_GYROSCOPE;
 		int TouchscreenDDRace = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_DDRACE;
+		int TouchscreenVolumeKeys = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_VOLUME_KEYS;
+		int TouchscreenProximitySensor = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_PROXIMITY_SENSOR;
 
 		Left.HSplitTop(5.0f, 0, &Left);
 		Left.HSplitTop(20.0f, &Button, &Left);
@@ -135,11 +137,22 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 
 		Left.HSplitTop(5.0f, 0, &Left);
 		Left.HSplitTop(20.0f, &Button, &Left);
-		if(DoButton_CheckBox(&TouchscreenDDRace, Localize("Two joysticks DDRace, Hook activated by joystick, separate Fire button"), TouchscreenDDRace, &Button))
+		if(DoButton_CheckBox(&TouchscreenDDRace, Localize("Two joysticks DDRace, Hook activated by joystick"), TouchscreenDDRace, &Button))
 			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_DDRACE;
+
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&TouchscreenVolumeKeys, Localize("Two joysticks, Hook activated by Volume keys"), TouchscreenVolumeKeys, &Button))
+			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_VOLUME_KEYS;
+
+		Left.HSplitTop(5.0f, 0, &Left);
+		Left.HSplitTop(20.0f, &Button, &Left);
+		if(DoButton_CheckBox(&TouchscreenProximitySensor, Localize("Two joysticks, Hook activated by a proximity sensor"), TouchscreenProximitySensor, &Button))
+			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_PROXIMITY_SENSOR;
 
 
 		// name plates
+		Right.HSplitTop(5.0f, 0, &Right);
 		Right.HSplitTop(20.0f, &Button, &Right);
 		if(DoButton_CheckBox(&g_Config.m_ClNameplates, Localize("Show name plates"), g_Config.m_ClNameplates, &Button))
 			g_Config.m_ClNameplates ^= 1;
@@ -174,6 +187,19 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 			UI()->DoLabelScaled(&Label, Localize("Gyroscope sensitivity"), 13.0f, -1);
 			Button.HMargin(2.0f, &Button);
 			g_Config.m_ClGyroscopeSensitivity = static_cast<int>(DoScrollbarH(&g_Config.m_ClGyroscopeSensitivity, &Button, g_Config.m_ClGyroscopeSensitivity/100.0f)*100.0f+0.1f);
+		}
+		if(TouchscreenProximitySensor)
+		{
+			Right.HSplitTop(20.0f, 0, &Right);
+			Right.HSplitTop(20.0f, &Label, &Right);
+			Label.VSplitLeft(20.0f, 0, &Label);
+			UI()->DoLabelScaled(&Label, Localize("Cover front camera to activate proximity sensor"), 13.0f, -1);
+			Right.HSplitTop(20.0f, &Label, &Right);
+			Label.VSplitLeft(20.0f, 0, &Label);
+			UI()->DoLabelScaled(&Label, Localize("All phones have proximity sensor"), 13.0f, -1);
+			Right.HSplitTop(20.0f, &Label, &Right);
+			Label.VSplitLeft(20.0f, 0, &Label);
+			UI()->DoLabelScaled(&Label, Localize("But tablets usually do not have it"), 13.0f, -1);
 		}
 	}
 

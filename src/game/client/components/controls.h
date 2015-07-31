@@ -6,7 +6,7 @@
 #include <base/system.h>
 #include <game/client/component.h>
 
-struct SDL_Joystick;
+typedef struct _SDL_Joystick SDL_Joystick;
 
 class CControls : public CComponent
 {
@@ -14,6 +14,8 @@ class CControls : public CComponent
 	void TouchscreenInputThreeJoysticks(int64 CurTime, bool *FireWasPressed);
 	void TouchscreenInputGyroscope(int64 CurTime, bool *FireWasPressed);
 	void TouchscreenInputDDRace(int64 CurTime, bool *FireWasPressed);
+	void TouchscreenInputVolumeKeys(int64 CurTime, bool *FireWasPressed);
+	void TouchscreenInputProximitySensor(int64 CurTime, bool *FireWasPressed);
 
 public:
 	vec2 m_MousePos;
@@ -25,6 +27,8 @@ public:
 	bool m_JoystickRunPressed;
 	int64 m_JoystickTapTime;
 	float m_GyroscopeCenter;
+	int m_Hook;
+	bool m_RelaunchHook;
 
 	SDL_Joystick *m_Gamepad;
 	bool m_UsingGamepad;

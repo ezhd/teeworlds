@@ -19,11 +19,22 @@
 
 #include "controls.h"
 
+
+#if defined(__ANDROID__)
+#include <jni.h>
+static bool proximityPressed = false;
+extern "C" JNIEXPORT void JNICALL Java_com_teeworlds_AccelerometerReader_nativeProximity(void *jnienv, void *jniobj, float value)
+{
+	proximityPressed = value < 0.99f;
+}
+#endif
+
 enum {	LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1,
 		RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3,
 		SECOND_RIGHT_JOYSTICK_X = 20, SECOND_RIGHT_JOYSTICK_Y = 21,
 		ORIENTATION_X = 8, ORIENTATION_Y = 9, ORIENTATION_Z = 10,
 		NUM_JOYSTICK_AXES = 22 };
+
 
 CControls::CControls()
 {
@@ -69,6 +80,8 @@ void CControls::OnReset()
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
 	m_GyroscopeCenter = 0.0f;
+	m_Hook = 0;
+	m_RelaunchHook = false;
 }
 
 void CControls::OnRelease()
@@ -123,7 +136,7 @@ void CControls::OnConsoleInit()
 	Console()->Register("+left", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputDirectionLeft, "Move left");
 	Console()->Register("+right", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputDirectionRight, "Move right");
 	Console()->Register("+jump", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputData.m_Jump, "Jump");
-	Console()->Register("+hook", "", CFGFLAG_CLIENT, ConKeyInputState, &m_InputData.m_Hook, "Hook");
+	Console()->Register("+hook", "", CFGFLAG_CLIENT, ConKeyInputState, &m_Hook, "Hook");
 	Console()->Register("+fire", "", CFGFLAG_CLIENT, ConKeyInputCounter, &m_InputData.m_Fire, "Fire");
 
 	{ static CInputSet s_Set = {this, &m_InputData.m_WantedWeapon, 1}; Console()->Register("+weapon1", "", CFGFLAG_CLIENT, ConKeyInputSet, (void *)&s_Set, "Switch to hammer"); }
@@ -198,6 +211,8 @@ int CControls::SnapInput(int *pData)
 		if(!m_InputDirectionLeft && m_InputDirectionRight)
 			m_InputData.m_Direction = 1;
 
+		m_InputData.m_Hook = m_Hook && !m_RelaunchHook;
+
 		// stress testing
 		if(g_Config.m_DbgStress)
 		{
@@ -259,6 +274,12 @@ void CControls::OnRender()
 				break;
 			case TOUCHSCREEN_DDRACE:
 				TouchscreenInputDDRace(CurTime, &FireWasPressed);
+				break;
+			case TOUCHSCREEN_VOLUME_KEYS:
+				TouchscreenInputVolumeKeys(CurTime, &FireWasPressed);
+				break;
+			case TOUCHSCREEN_PROXIMITY_SENSOR:
+				TouchscreenInputProximitySensor(CurTime, &FireWasPressed);
 				break;
 		}
 	}
@@ -467,11 +488,11 @@ void CControls::TouchscreenInputThreeJoysticks(int64 CurTime, bool *FireWasPress
 	{
 		m_MousePos = vec2(HookX / 30, HookY / 30);
 		ClampMousePos();
-		m_InputData.m_Hook = 1;
+		m_Hook = 1;
 	}
 	else
 	{
-		m_InputData.m_Hook = 0;
+		m_Hook = 0;
 	}
 
 	if( AimPressed )
@@ -614,11 +635,88 @@ void CControls::TouchscreenInputDDRace(int64 CurTime, bool *FireWasPressed)
 	{
 		m_MousePos = vec2(AimX / 30, AimY / 30);
 		ClampMousePos();
-		m_InputData.m_Hook = 1;
+		m_Hook = 1;
 	}
 	else
 	{
-		m_InputData.m_Hook = 0;
+		m_Hook = 0;
 	}
 }
+
+void CControls::TouchscreenInputVolumeKeys(int64 CurTime, bool *FireWasPressed)
+{
+	// Get input from left joystick
+	int RunX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
+	int RunY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
+	bool RunPressed = (RunX != 0 || RunY != 0);
+	// Get input from right joystick
+	int AimX = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_X);
+	int AimY = SDL_JoystickGetAxis(m_Joystick, RIGHT_JOYSTICK_Y);
+	bool AimPressed = (AimX != 0 || AimY != 0);
+
+	if( m_JoystickRunPressed != RunPressed )
+	{
+		if( RunPressed && RunY < 0 )
+			m_InputData.m_Jump = 1;
+		else
+			m_InputData.m_Jump = 0;
+		m_JoystickTapTime = CurTime;
+	}
+
+	m_JoystickRunPressed = RunPressed;
+
+	if( RunPressed )
+	{
+		m_InputDirectionLeft = (RunX <= 0);
+		m_InputDirectionRight = (RunX > 0);
+	}
+
+	// Move 500ms in the same direction, to prevent speed bump when tapping
+	if( !RunPressed && m_JoystickTapTime + time_freq() / 2 > CurTime )
+	{
+		m_InputDirectionLeft = 0;
+		m_InputDirectionRight = 0;
+	}
+
+	if( AimPressed )
+	{
+		m_MousePos = vec2(AimX / 30, AimY / 30);
+		ClampMousePos();
+	}
+
+	m_RelaunchHook = 0;
+
+	if( AimPressed != m_JoystickFirePressed )
+	{
+		// Fire when releasing joystick
+		if( !AimPressed )
+		{
+			if( m_Hook )
+			{
+				m_RelaunchHook = 1;
+			}
+			else
+			{
+				m_InputData.m_Fire ++;
+				if( m_InputData.m_Fire % 2 != AimPressed )
+					m_InputData.m_Fire ++;
+				*FireWasPressed = true;
+			}
+		}
+	}
+
+	m_JoystickFirePressed = AimPressed;
+
+	if( !m_Hook )
+	{
+		m_RelaunchHook = 0;
+	}
+}
+
+void CControls::TouchscreenInputProximitySensor(int64 CurTime, bool *FireWasPressed)
+{
+	m_Hook = proximityPressed;
+	TouchscreenInputVolumeKeys(CurTime, FireWasPressed);
+}
+
 #endif
