@@ -351,7 +351,7 @@ int CMenus::DoEditBox(void *pID, const CUIRect *pRect, char *pStr, unsigned StrS
 	return ReturnValue;
 }
 
-float CMenus::DoScrollbarV(const void *pID, const CUIRect *pRect, float Current)
+float CMenus::DoScrollbarV(const void *pID, const CUIRect *pRect, float Current, float PageScrollDistance)
 {
 	CUIRect Handle;
 	static float OffsetY;
@@ -386,6 +386,20 @@ float CMenus::DoScrollbarV(const void *pID, const CUIRect *pRect, float Current)
 
 	if(Inside)
 		UI()->SetHotItem(pID);
+
+	int Outside = UI()->MouseInside(pRect);
+	if(Outside && !Inside)
+	{
+		if(UI()->MouseButtonClicked(0))
+		{
+			if (UI()->MouseY() < Handle.y)
+				ReturnValue -= PageScrollDistance;
+			else
+				ReturnValue += PageScrollDistance;
+			if(ReturnValue < 0.0f) ReturnValue = 0.0f;
+			if(ReturnValue > 1.0f) ReturnValue = 1.0f;
+		}
+	}
 
 	// render
 	CUIRect Rail;
