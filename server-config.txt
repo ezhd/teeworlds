@@ -39,6 +39,9 @@ sv_max_clients 12
 # Note: reduces clients. (e.g. sv_max_clients 12 - sv_spectator_slots 2 = 10 people playing)
 sv_spectator_slots 2
 
+# Keep at maximum, otherwise it's not possible to add 10 bots
+sv_max_clients_per_ip 12
+
 # 1 to advertise on the net, 0 to not.
 sv_register 0
 
