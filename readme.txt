@@ -8,3 +8,7 @@ arising from the use of this software.
 
 Please visit http://www.teeworlds.com for up-to-date information about 
 the game, including new versions, custom maps and much more.
+
+Bot sources are not available, because of cheaters that use aimbot client.
+They are available on request from here:
+https://www.teeworlds.com/forum/viewtopic.php?id=11397
