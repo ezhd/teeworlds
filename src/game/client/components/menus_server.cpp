@@ -43,17 +43,22 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 	static int64 LastUpdateTime = 0;
 	static bool ServerRunning = false;
 	static bool ServerStarting = false;
+	static bool AddingBot = false;
 	if (time_get() / time_freq() > LastUpdateTime + 3)
 	{
 		LastUpdateTime = time_get() / time_freq();
 		int status = system("$SECURE_STORAGE_DIR/busybox sh -c 'ps | grep teeworlds_srv'");
 		ServerRunning = WEXITSTATUS(status) == 0;
 		ServerStarting = false;
+		AddingBot = false;
 	}
 
 	MainView.HSplitTop(30, 0, &MainView);
 	MsgBox = MainView;
-	UI()->DoLabelScaled(&MsgBox, ServerStarting ? Localize("Server is starting") : ServerRunning ? Localize("Server is running") : Localize("Server stopped"), 20.0f, 0);
+	UI()->DoLabelScaled(&MsgBox, AddingBot ? Localize("Adding a bot to server") :
+								 ServerStarting ? Localize("Server is starting") :
+								 ServerRunning ? Localize("Server is running") :
+								 Localize("Server stopped"), 20.0f, 0);
 
 	MainView.HSplitTop(30, 0, &MainView);
 
@@ -106,58 +111,73 @@ void CMenus::ServerCreatorProcess(CUIRect MainView)
 
 	MainView.HSplitTop(60, 0, &MainView);
 	MsgBox = MainView;
-	if(ServerRunning && false)
+	if(ServerRunning)
 	{
 		UI()->DoLabelScaled(&MsgBox, Localize("Add bots to server"), 20.0f, 0);
 	}
 
 	MainView.HSplitTop(30, 0, &MainView);
 
-	if(ServerRunning && false) // Not implemented yet
+	if(ServerRunning)
 	{
+		MainView.VSplitRight(50, 0, &Button);
+		int width = Button.x;
 		MainView.VSplitLeft(50, 0, &Button);
+		width -= Button.x;
+		width /= 14;
+
 		Button.h = 50;
-		Button.w = 100;
+		Button.w = width * 2;
 		static int s_AddBot1 = 0;
 		if(DoButton_Menu(&s_AddBot1, Localize("Harmless"), 0, &Button))
 		{
-			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 1 >/dev/null 2>&1 &");
+			system("$SECURE_STORAGE_DIR/teebot 'bot_skill 0' >/dev/null 2>&1 &");
+			AddingBot = true;
+			LastUpdateTime = time_get() / time_freq();
 		}
 
-		MainView.VSplitLeft(225, 0, &Button);
+		MainView.VSplitLeft(50 + width * 3, 0, &Button);
 		Button.h = 50;
-		Button.w = 100;
+		Button.w = width * 2;
 		static int s_AddBot2 = 0;
-		if(DoButton_Menu(&s_AddBot2, Localize("Feeble"), 0, &Button))
+		if(DoButton_Menu(&s_AddBot2, Localize("Clumsy"), 0, &Button))
 		{
-			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 2 >/dev/null 2>&1 &");
+			system("$SECURE_STORAGE_DIR/teebot 'bot_skill 1' >/dev/null 2>&1 &");
+			AddingBot = true;
+			LastUpdateTime = time_get() / time_freq();
 		}
 
-		MainView.VSplitLeft(400, 0, &Button);
+		MainView.VSplitLeft(50 + width * 6, 0, &Button);
 		Button.h = 50;
-		Button.w = 100;
+		Button.w = width * 2;
 		static int s_AddBot3 = 0;
-		if(DoButton_Menu(&s_AddBot3, Localize("Brawler"), 0, &Button))
+		if(DoButton_Menu(&s_AddBot3, Localize("Skilled"), 0, &Button))
 		{
-			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 3 >/dev/null 2>&1 &");
+			system("$SECURE_STORAGE_DIR/teebot 'bot_skill 2' >/dev/null 2>&1 &");
+			AddingBot = true;
+			LastUpdateTime = time_get() / time_freq();
 		}
 
-		MainView.VSplitLeft(575, 0, &Button);
+		MainView.VSplitLeft(50 + width * 9, 0, &Button);
 		Button.h = 50;
-		Button.w = 100;
+		Button.w = width * 2;
 		static int s_AddBot4 = 0;
-		if(DoButton_Menu(&s_AddBot4, Localize("Murderer"), 0, &Button))
+		if(DoButton_Menu(&s_AddBot4, Localize("Dominating"), 0, &Button))
 		{
-			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 4 >/dev/null 2>&1 &");
+			system("$SECURE_STORAGE_DIR/teebot 'bot_skill 3' >/dev/null 2>&1 &");
+			AddingBot = true;
+			LastUpdateTime = time_get() / time_freq();
 		}
 
-		MainView.VSplitLeft(750, 0, &Button);
+		MainView.VSplitLeft(50 + width * 12, 0, &Button);
 		Button.h = 50;
-		Button.w = 100;
+		Button.w = width * 2;
 		static int s_AddBot5 = 0;
-		if(DoButton_Menu(&s_AddBot5, Localize("Mr. Death"), 0, &Button))
+		if(DoButton_Menu(&s_AddBot5, Localize("Impossible"), 0, &Button))
 		{
-			system("$SECURE_STORAGE_DIR/teeworlds_bot 127.0.0.1 5 >/dev/null 2>&1 &");
+			system("$SECURE_STORAGE_DIR/teebot 'bot_skill 4' >/dev/null 2>&1 &");
+			AddingBot = true;
+			LastUpdateTime = time_get() / time_freq();
 		}
 	}
 
