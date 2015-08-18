@@ -180,7 +180,7 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 			Label.VSplitLeft(20.0f, 0, &Label);
 			UI()->DoLabelScaled(&Label, Localize("Accelerometer sensitivity"), 13.0f, -1);
 			Button.HMargin(2.0f, &Button);
-			g_Config.m_ClAccelerometerSensitivity = static_cast<int>(DoScrollbarH(&g_Config.m_ClAccelerometerSensitivity, &Button, g_Config.m_ClAccelerometerSensitivity/100.0f)*100.0f+0.1f);
+			g_Config.m_ClAccelerometerSensitivity = static_cast<int>(DoScrollbarH(&g_Config.m_ClAccelerometerSensitivity, &Button, g_Config.m_ClAccelerometerSensitivity/10000.0f)*10000.0f);
 		}
 	}
 

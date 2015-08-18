@@ -532,13 +532,13 @@ void CControls::TouchscreenInputAccelerometer(int64 CurTime, bool *FireWasPresse
 	}
 
 	if( X >= g_Config.m_ClAccelerometerSensitivity && OldX < g_Config.m_ClAccelerometerSensitivity )
-		m_InputDirectionLeft = 1;
-	if( X < g_Config.m_ClAccelerometerSensitivity && OldX >= g_Config.m_ClAccelerometerSensitivity )
-		m_InputDirectionLeft = 0;
-	if( X <= -g_Config.m_ClAccelerometerSensitivity && OldX > -g_Config.m_ClAccelerometerSensitivity )
 		m_InputDirectionRight = 1;
-	if( X > -g_Config.m_ClAccelerometerSensitivity && OldX <= -g_Config.m_ClAccelerometerSensitivity )
+	if( X < g_Config.m_ClAccelerometerSensitivity && OldX >= g_Config.m_ClAccelerometerSensitivity )
 		m_InputDirectionRight = 0;
+	if( X <= -g_Config.m_ClAccelerometerSensitivity && OldX > -g_Config.m_ClAccelerometerSensitivity )
+		m_InputDirectionLeft = 1;
+	if( X > -g_Config.m_ClAccelerometerSensitivity && OldX <= -g_Config.m_ClAccelerometerSensitivity )
+		m_InputDirectionLeft = 0;
 
 	OldX = X;
 

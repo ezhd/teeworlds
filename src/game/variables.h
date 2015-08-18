@@ -15,7 +15,7 @@ MACRO_CONFIG_INT(ClAutoswitchWeapons, cl_autoswitch_weapons, 1, 0, 1, CFGFLAG_CL
 MACRO_CONFIG_INT(ClAutoswitchWeaponsOutOfAmmo, cl_autoswitch_weapons_out_of_ammo, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Auto switch weapon when out of ammo")
 
 MACRO_CONFIG_INT(ClTouchscreenMode, cl_touchscreen_mode_2, TOUCHSCREEN_ACCELEROMETER, TOUCHSCREEN_TWO_JOYSTICKS, TOUCHSCREEN_VOLUME_KEYS, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Touchscreen controls preset")
-MACRO_CONFIG_INT(ClAccelerometerSensitivity, cl_accelerometer_sensitivity, 2000, 0, 5000, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Accelerometer sensitivity")
+MACRO_CONFIG_INT(ClAccelerometerSensitivity, cl_accelerometer_sensitivity, 2000, 0, 10000, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Accelerometer sensitivity")
 
 MACRO_CONFIG_INT(ClShowhud, cl_showhud, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ingame HUD")
 MACRO_CONFIG_INT(ClShowChatFriends, cl_show_chat_friends, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show only chat messages from friends")
