@@ -20,20 +20,11 @@
 #include "controls.h"
 
 
-#if defined(__ANDROID__)
-#include <jni.h>
-static bool proximityPressed = false;
-extern "C" JNIEXPORT void JNICALL Java_com_teeworlds_AccelerometerReader_nativeProximity(void *jnienv, void *jniobj, float value)
-{
-	proximityPressed = value < 0.99f;
-	//dbg_msg("Proximity", "Proximity value: %f pressed %d", value, proximityPressed);
-}
-#endif
-
 enum {	LEFT_JOYSTICK_X = 0, LEFT_JOYSTICK_Y = 1,
 		RIGHT_JOYSTICK_X = 2, RIGHT_JOYSTICK_Y = 3,
 		SECOND_RIGHT_JOYSTICK_X = 20, SECOND_RIGHT_JOYSTICK_Y = 21,
 		ORIENTATION_X = 8, ORIENTATION_Y = 9, ORIENTATION_Z = 10,
+		ACCELEROMETER_X = 0, ACCELEROMETER_Y = 1,
 		NUM_JOYSTICK_AXES = 22 };
 
 
@@ -51,6 +42,8 @@ CControls::CControls()
 	}
 
 	m_Gamepad = SDL_JoystickOpen(2);
+
+	m_Accelerometer = NULL;
 
 	SDL_JoystickEventState(SDL_QUERY);
 
@@ -80,9 +73,15 @@ void CControls::OnReset()
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
 	m_OldMouseX = m_OldMouseY = 0.0f;
-	m_GyroscopeCenter = 0.0f;
 	m_Hook = 0;
 	m_RelaunchHook = false;
+	// Prevent launching hook right after respawning
+	if( g_Config.m_ClTouchscreenMode == TOUCHSCREEN_ACCELEROMETER )
+		m_RelaunchHook = true;
+#if defined(__ANDROID__)
+	if(!m_Accelerometer)
+		m_Accelerometer = SDL_JoystickOpen(1);
+#endif
 }
 
 void CControls::OnRelease()
@@ -95,6 +94,10 @@ void CControls::OnPlayerDeath()
 	m_LastData.m_WantedWeapon = m_InputData.m_WantedWeapon = 0;
 	for( int i = 0; i < NUM_WEAPONS; i++ )
 		m_AmmoCount[i] = 0;
+
+	// Prevent launching hook right after respawning
+	if( g_Config.m_ClTouchscreenMode == TOUCHSCREEN_ACCELEROMETER )
+		m_RelaunchHook = true;
 }
 
 static void ConKeyInputState(IConsole::IResult *pResult, void *pUserData)
@@ -270,17 +273,14 @@ void CControls::OnRender()
 			case TOUCHSCREEN_THREE_JOYSTICKS:
 				TouchscreenInputThreeJoysticks(CurTime, &FireWasPressed);
 				break;
-			case TOUCHSCREEN_GYROSCOPE:
-				TouchscreenInputGyroscope(CurTime, &FireWasPressed);
+			case TOUCHSCREEN_ACCELEROMETER:
+				TouchscreenInputAccelerometer(CurTime, &FireWasPressed);
 				break;
 			case TOUCHSCREEN_DDRACE:
 				TouchscreenInputDDRace(CurTime, &FireWasPressed);
 				break;
 			case TOUCHSCREEN_VOLUME_KEYS:
 				TouchscreenInputVolumeKeys(CurTime, &FireWasPressed);
-				break;
-			case TOUCHSCREEN_PROXIMITY_SENSOR:
-				TouchscreenInputProximitySensor(CurTime, &FireWasPressed);
 				break;
 		}
 	}
@@ -444,6 +444,8 @@ void CControls::TouchscreenInputTwoJoysticks(int64 CurTime, bool *FireWasPressed
 		m_MousePos = vec2(AimX / 30, AimY / 30);
 		ClampMousePos();
 	}
+
+	m_RelaunchHook = false;
 }
 
 void CControls::TouchscreenInputThreeJoysticks(int64 CurTime, bool *FireWasPressed)
@@ -515,86 +517,53 @@ void CControls::TouchscreenInputThreeJoysticks(int64 CurTime, bool *FireWasPress
 	}
 
 	m_JoystickFirePressed = AimPressed;
+	m_RelaunchHook = false;
 }
 
-void CControls::TouchscreenInputGyroscope(int64 CurTime, bool *FireWasPressed)
+void CControls::TouchscreenInputAccelerometer(int64 CurTime, bool *FireWasPressed)
 {
-	/*
-	int X = 0, Y = 0, Z = 0;
-	if( UI()->m_Gyroscope != NULL )
+	int X = 0, Y = 0;
+	static int OldX = 0;
+
+	if( m_Accelerometer != NULL )
 	{
-		X = SDL_JoystickGetAxis(UI()->m_Gyroscope, ORIENTATION_X);
-		Y = SDL_JoystickGetAxis(UI()->m_Gyroscope, ORIENTATION_Y);
-		Z = SDL_JoystickGetAxis(UI()->m_Gyroscope, ORIENTATION_Z);
-		dbg_msg("orientation", "%07d %07d %07d", X, Y, Z);
+		X = SDL_JoystickGetAxis(m_Accelerometer, ACCELEROMETER_X);
+		Y = SDL_JoystickGetAxis(m_Accelerometer, ACCELEROMETER_Y);
 	}
-	*/
 
-	float X, Y, Z;
-	Input()->ReadGyroscopeInput(&X, &Y, &Z);
-	//dbg_msg("gyro", "%f %f %f", X, Y, Z);
-
-	float OldGyroscope = m_GyroscopeCenter;
-	m_GyroscopeCenter += Z * g_Config.m_ClGyroscopeSensitivity / 5.0f;
-	//m_GyroscopeCenter -= ( (m_GyroscopeCenter > 0) ? 1 : -1 ) * (CurTime - m_GyroscopeLastTime) * 0.5f / time_freq();
-
-	if( m_GyroscopeCenter > 3.0f )
-		m_GyroscopeCenter = 3.0f;
-	if( m_GyroscopeCenter < -3.0f )
-		m_GyroscopeCenter = -3.0f;
-
-	if( m_GyroscopeCenter >= 1.0f && OldGyroscope < 1.0f )
+	if( X >= g_Config.m_ClAccelerometerSensitivity && OldX < g_Config.m_ClAccelerometerSensitivity )
 		m_InputDirectionLeft = 1;
-	if( m_GyroscopeCenter < 1.0f && OldGyroscope >= 1.0f )
+	if( X < g_Config.m_ClAccelerometerSensitivity && OldX >= g_Config.m_ClAccelerometerSensitivity )
 		m_InputDirectionLeft = 0;
-	if( m_GyroscopeCenter <= -1.0f && OldGyroscope > -1.0f )
+	if( X <= -g_Config.m_ClAccelerometerSensitivity && OldX > -g_Config.m_ClAccelerometerSensitivity )
 		m_InputDirectionRight = 1;
-	if( m_GyroscopeCenter > -1.0f && OldGyroscope <= -1.0f )
+	if( X > -g_Config.m_ClAccelerometerSensitivity && OldX <= -g_Config.m_ClAccelerometerSensitivity )
 		m_InputDirectionRight = 0;
+
+	OldX = X;
 
 	// Get input from right joystick
 	int AimX = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_X);
 	int AimY = SDL_JoystickGetAxis(m_Joystick, LEFT_JOYSTICK_Y);
 	bool AimPressed = (AimX != 0 || AimY != 0);
-
-	if( m_JoystickRunPressed != AimPressed )
-	{
-		if( AimPressed )
-			m_InputData.m_Jump = 1;
-		else
-			m_InputData.m_Jump = 0;
-		m_JoystickTapTime = CurTime;
-	}
-
-	m_JoystickRunPressed = AimPressed;
+	static int OldAimX = 0, OldAimY = 0;
+	bool OldAimPressed = (OldAimX != 0 || OldAimY != 0);
 
 	if( AimPressed )
 	{
 		m_MousePos = vec2(AimX / 30, AimY / 30);
 		ClampMousePos();
+		m_Hook = 0;
+		if( !OldAimPressed )
+			m_RelaunchHook = false;
 	}
-
-	// Draw gyro meter
-	/*
-	float meterX = Graphics()->ScreenWidth() / 2.0f;;
-	float meterY = Graphics()->ScreenHeight() * 0.90f;
-	float meterH = Graphics()->ScreenHeight() * 0.01f;
-	float meterW = Graphics()->ScreenHeight() * 0.03f;
-	float meterValue = m_GyroscopeCenter;
-	if (meterValue > 1.0f)
-		meterValue = 1.0f;
-	if (meterValue < -1.0f)
-		meterValue = -1.0f;
-	Graphics()->LinesBegin();
-	Graphics()->SetColor(0.00f, 0.50f, 1.00f, 1.00f);
-	IGraphics::CLineItem Array[] = {
-		IGraphics::CLineItem(meterX - meterW, meterY - meterH, meterX - meterW, meterY + meterH),
-		IGraphics::CLineItem(meterX + meterW, meterY - meterH, meterX + meterW, meterY + meterH),
-		IGraphics::CLineItem(meterX, meterY, meterX + meterW * m_GyroscopeCenter, meterY),
-	};
-	Graphics()->LinesDraw(Array, 3);
-	Graphics()->LinesEnd();
-	*/
+	else
+	{
+		if (m_InputData.m_Fire % 2 == 0)
+			m_Hook = 1;
+	}
+	OldAimX = AimX;
+	OldAimY = AimY;
 }
 
 void CControls::TouchscreenInputDDRace(int64 CurTime, bool *FireWasPressed)
@@ -642,6 +611,8 @@ void CControls::TouchscreenInputDDRace(int64 CurTime, bool *FireWasPressed)
 	{
 		m_Hook = 0;
 	}
+
+	m_RelaunchHook = false;
 }
 
 void CControls::TouchscreenInputVolumeKeys(int64 CurTime, bool *FireWasPressed)
@@ -685,7 +656,7 @@ void CControls::TouchscreenInputVolumeKeys(int64 CurTime, bool *FireWasPressed)
 		ClampMousePos();
 	}
 
-	m_RelaunchHook = 0;
+	m_RelaunchHook = false;
 
 	if( AimPressed != m_JoystickFirePressed )
 	{
@@ -694,7 +665,7 @@ void CControls::TouchscreenInputVolumeKeys(int64 CurTime, bool *FireWasPressed)
 		{
 			if( m_Hook )
 			{
-				m_RelaunchHook = 1;
+				m_RelaunchHook = true;
 			}
 			else
 			{
@@ -710,14 +681,8 @@ void CControls::TouchscreenInputVolumeKeys(int64 CurTime, bool *FireWasPressed)
 
 	if( !m_Hook )
 	{
-		m_RelaunchHook = 0;
+		m_RelaunchHook = false;
 	}
-}
-
-void CControls::TouchscreenInputProximitySensor(int64 CurTime, bool *FireWasPressed)
-{
-	m_Hook = proximityPressed;
-	TouchscreenInputVolumeKeys(CurTime, FireWasPressed);
 }
 
 #endif

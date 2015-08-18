@@ -3,10 +3,6 @@
 #ifndef GAME_CLIENT_UI_H
 #define GAME_CLIENT_UI_H
 
-#if defined(__ANDROID__)
-#include <SDL.h>
-#endif
-
 class CUIRect
 {
 	// TODO: Refactor: Redo UI scaling
@@ -105,10 +101,6 @@ public:
 	void AndroidTextInputHintMessage(const char *hintText);
 	void AndroidBlockAndGetTextInput(char *text, int textLength, const char *hintText);
 	bool AndroidTextInputShown();
-
-#if defined(__ANDROID__)
-	SDL_Joystick * m_Gyroscope;
-#endif
 };
 
 

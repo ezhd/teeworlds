@@ -115,10 +115,9 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 
 		int TouchscreenTwoJoysticks = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_TWO_JOYSTICKS;
 		int TouchscreenThreeJoysticks = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_THREE_JOYSTICKS;
-		int TouchscreenGyroscope = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_GYROSCOPE;
+		int TouchscreenAccelerometer = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_ACCELEROMETER;
 		int TouchscreenDDRace = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_DDRACE;
 		int TouchscreenVolumeKeys = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_VOLUME_KEYS;
-		int TouchscreenProximitySensor = g_Config.m_ClTouchscreenMode == TOUCHSCREEN_PROXIMITY_SENSOR;
 
 		Left.HSplitTop(5.0f, 0, &Left);
 		Left.HSplitTop(20.0f, &Button, &Left);
@@ -132,8 +131,8 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 
 		Left.HSplitTop(5.0f, 0, &Left);
 		Left.HSplitTop(20.0f, &Button, &Left);
-		if(DoButton_CheckBox(&TouchscreenGyroscope, Localize("One joystick + gyroscope, separate Fire and Hook buttons"), TouchscreenGyroscope, &Button))
-			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_GYROSCOPE;
+		if(DoButton_CheckBox(&TouchscreenAccelerometer, Localize("One joystick + accelerometer, separate Fire button"), TouchscreenAccelerometer, &Button))
+			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_ACCELEROMETER;
 
 		Left.HSplitTop(5.0f, 0, &Left);
 		Left.HSplitTop(20.0f, &Button, &Left);
@@ -144,11 +143,6 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 		Left.HSplitTop(20.0f, &Button, &Left);
 		if(DoButton_CheckBox(&TouchscreenVolumeKeys, Localize("Two joysticks, Hook activated by Volume keys"), TouchscreenVolumeKeys, &Button))
 			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_VOLUME_KEYS;
-
-		Left.HSplitTop(5.0f, 0, &Left);
-		Left.HSplitTop(20.0f, &Button, &Left);
-		if(DoButton_CheckBox(&TouchscreenProximitySensor, Localize("Two joysticks, Hook activated by a proximity sensor"), TouchscreenProximitySensor, &Button))
-			g_Config.m_ClTouchscreenMode = TOUCHSCREEN_PROXIMITY_SENSOR;
 
 
 		// name plates
@@ -178,28 +172,15 @@ void CMenus::RenderSettingsGeneral(CUIRect MainView)
 				g_Config.m_ClNameplatesTeamcolors ^= 1;
 		}
 
-		if(TouchscreenGyroscope)
+		if(TouchscreenAccelerometer)
 		{
 			Right.HSplitTop(10.0f, 0, &Right);
 			Right.HSplitTop(20.0f, &Label, &Right);
 			Right.HSplitTop(20.0f, &Button, &Right);
 			Label.VSplitLeft(20.0f, 0, &Label);
-			UI()->DoLabelScaled(&Label, Localize("Gyroscope sensitivity"), 13.0f, -1);
+			UI()->DoLabelScaled(&Label, Localize("Accelerometer sensitivity"), 13.0f, -1);
 			Button.HMargin(2.0f, &Button);
-			g_Config.m_ClGyroscopeSensitivity = static_cast<int>(DoScrollbarH(&g_Config.m_ClGyroscopeSensitivity, &Button, g_Config.m_ClGyroscopeSensitivity/100.0f)*100.0f+0.1f);
-		}
-		if(TouchscreenProximitySensor)
-		{
-			Right.HSplitTop(20.0f, 0, &Right);
-			Right.HSplitTop(20.0f, &Label, &Right);
-			Label.VSplitLeft(20.0f, 0, &Label);
-			UI()->DoLabelScaled(&Label, Localize("Cover front camera to activate proximity sensor"), 13.0f, -1);
-			Right.HSplitTop(20.0f, &Label, &Right);
-			Label.VSplitLeft(20.0f, 0, &Label);
-			UI()->DoLabelScaled(&Label, Localize("All phones have proximity sensor"), 13.0f, -1);
-			Right.HSplitTop(20.0f, &Label, &Right);
-			Label.VSplitLeft(20.0f, 0, &Label);
-			UI()->DoLabelScaled(&Label, Localize("But tablets usually do not have it"), 13.0f, -1);
+			g_Config.m_ClAccelerometerSensitivity = static_cast<int>(DoScrollbarH(&g_Config.m_ClAccelerometerSensitivity, &Button, g_Config.m_ClAccelerometerSensitivity/100.0f)*100.0f+0.1f);
 		}
 	}
 

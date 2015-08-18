@@ -34,10 +34,6 @@ CUI::CUI()
 	m_Screen.y = 0;
 	m_Screen.w = 848.0f;
 	m_Screen.h = 480.0f;
-
-#if defined(__ANDROID__)
-	m_Gyroscope = NULL;
-#endif
 }
 
 int CUI::Update(float Mx, float My, float Mwx, float Mwy, int Buttons)
@@ -192,8 +188,11 @@ static void AndroidScreenKeysThreeJoysticks(SDL_Rect Buttons[], int ScreenW, int
 		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h;
 }
 
-static void AndroidScreenKeysGyroscope(SDL_Rect Buttons[], int ScreenW, int ScreenH)
+static void AndroidScreenKeysAccelerometer(SDL_Rect Buttons[], int ScreenW, int ScreenH)
 {
+	// Joystick to the right
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].x = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y;
 	// Hide second joystick
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x = 0;
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y = 0;
@@ -204,26 +203,32 @@ static void AndroidScreenKeysGyroscope(SDL_Rect Buttons[], int ScreenW, int Scre
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].y = 0;
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].w = 0;
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].h = 0;
-	// Hook button to the right
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x =
-		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y =
-		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h * 2;
-	// Fire button to the left of the hook button
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x =
-		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].w * 2;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].y =
-		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h;
-	// Weapnext button above hook button
+	// Hide hook button
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h = 0;
+	// Weapnext button above joystick
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x =
 		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].w;
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h;
-	// Scores button above left joystick
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h * 2;
+	// Fire button to the left
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].y =
+		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h;
+	// Jump button above fire button
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_4].w = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].w;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_4].h = Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_4].x = 0;
+	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_4].y =
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_4].h;
+	// Scores button above jump button
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].x = 0;
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y -
+		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_4].y -
 		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].h * 2;
 	// Text input button above scores
 	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].y =
@@ -315,46 +320,6 @@ static void AndroidScreenKeysVolumeKeys(SDL_Rect Buttons[], int ScreenW, int Scr
 		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y -
 		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h;
 }
-
-static void AndroidScreenKeysProximitySensor(SDL_Rect Buttons[], int ScreenW, int ScreenH)
-{
-	// Second joystick to the right
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w *= 0.9;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h *= 0.9;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].x =
-		ScreenW - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].w;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].y =
-		ScreenH - Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD2].h;
-	// Hide third joystick
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].x = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].y = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].w = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD3].h = 0;
-	// Hide fire button
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].x = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].y = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].w = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_2].h = 0;
-	// Hide Hook button
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].x = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].y = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].w = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_0].h = 0;
-	// Weapnext button above left joystick
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].x = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].y =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_1].h;
-	// Scores button above left joystick
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].x = 0;
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_DPAD].y -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].h * 2;
-	// Text input button above scores
-	Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].y =
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_3].y -
-		Buttons[SDL_ANDROID_SCREENKEYBOARD_BUTTON_TEXT].h;
-}
 #endif
 
 void CUI::AndroidShowScreenKeys(bool shown)
@@ -398,17 +363,14 @@ void CUI::AndroidShowScreenKeys(bool shown)
 			case TOUCHSCREEN_THREE_JOYSTICKS:
 				AndroidScreenKeysThreeJoysticks(Buttons, ScreenW, ScreenH);
 				break;
-			case TOUCHSCREEN_GYROSCOPE:
-				AndroidScreenKeysGyroscope(Buttons, ScreenW, ScreenH);
+			case TOUCHSCREEN_ACCELEROMETER:
+				AndroidScreenKeysAccelerometer(Buttons, ScreenW, ScreenH);
 				break;
 			case TOUCHSCREEN_DDRACE:
 				AndroidScreenKeysDDRace(Buttons, ScreenW, ScreenH);
 				break;
 			case TOUCHSCREEN_VOLUME_KEYS:
 				AndroidScreenKeysVolumeKeys(Buttons, ScreenW, ScreenH);
-				break;
-			case TOUCHSCREEN_PROXIMITY_SENSOR:
-				AndroidScreenKeysProximitySensor(Buttons, ScreenW, ScreenH);
 				break;
 		}
 	}
@@ -419,14 +381,6 @@ void CUI::AndroidShowScreenKeys(bool shown)
 
 	for( int i = 0; i < SDL_ANDROID_SCREENKEYBOARD_BUTTON_NUM; i++ )
 		SDL_ANDROID_SetScreenKeyboardButtonPos( i, shown ? &Buttons[i] : &ButtonHidden );
-
-	if( g_Config.m_ClTouchscreenMode == TOUCHSCREEN_GYROSCOPE || g_Config.m_ClTouchscreenMode == TOUCHSCREEN_PROXIMITY_SENSOR )
-	{
-		if( shown && !m_Gyroscope )
-			m_Gyroscope = SDL_JoystickOpen(1);
-		else if( !shown && m_Gyroscope )
-			SDL_JoystickClose(m_Gyroscope), m_Gyroscope = NULL;
-	}
 #endif
 }
 
